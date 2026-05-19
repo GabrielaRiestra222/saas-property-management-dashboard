@@ -1,0 +1,116 @@
+/* Fix para react-big-calendar con diseño moderno */
+.rbc-calendar {
+  font-family: inherit;
+  height: 100%;
+}
+
+.rbc-header {
+  padding: 10px 3px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid hsl(var(--border));
+  background-color: hsl(var(--muted));
+}
+
+.rbc-today {
+  background-color: hsl(var(--accent) / 0.15);
+}
+
+.rbc-off-range-bg {
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.rbc-event {
+  padding: 2px 5px;
+  border-radius: 6px;
+  border: none !important;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.rbc-event:focus {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  border-top: 1px solid hsl(var(--border));
+}
+
+.rbc-time-view {
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.rbc-month-view {
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.rbc-month-row {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.rbc-date-cell {
+  padding: 6px;
+}
+
+.rbc-toolbar {
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rbc-toolbar button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rbc-toolbar button:hover {
+  background: hsl(var(--accent));
+}
+
+.rbc-toolbar button.rbc-active,
+.rbc-toolbar button:active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.rbc-toolbar-label {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.rbc-event-label {
+  display: none;
+}
+
+.rbc-show-more {
+  background-color: transparent;
+  color: hsl(var(--primary));
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.rbc-show-more:hover {
+  background-color: hsl(var(--accent));
+}
