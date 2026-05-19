@@ -19,10 +19,16 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = error.config?.url ?? "";
+    const isAuthRequest = requestUrl.includes("/token/");
+
+    if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
-      window.location.href = "/login";
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
 
     return Promise.reject(error);

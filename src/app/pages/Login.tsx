@@ -47,7 +47,7 @@ export default function LoginPage() {
     } catch {
       form.setError("root", {
         type: "server",
-        message: "Credenciales inválidas. Verifica tu usuario y contraseña.",
+        message: "Credenciales inválidas. Usa usuario toti y contraseña toti.",
       });
     }
   }
@@ -84,6 +84,9 @@ export default function LoginPage() {
               </div>
               <h2 className="text-3xl font-semibold tracking-tight text-foreground">Acceso al panel</h2>
               <p className="mt-2 text-sm text-muted-foreground">Introduce tus credenciales para continuar.</p>
+              <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-xs font-medium text-foreground">
+                Usuario: toti · Contraseña: toti
+              </p>
             </div>
 
             <Form {...form}>
