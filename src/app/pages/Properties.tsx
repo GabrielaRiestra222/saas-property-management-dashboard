@@ -10,6 +10,10 @@ import { useDeleteProperty, useProperties, useUpdateProperty } from "@/lib/hooks
 import { formatCurrency } from "@/lib/formatters";
 import type { Property } from "@/types";
 
+function getImageSrc(image?: Property["images"][number]) {
+  return image?.image_url || image?.image || "";
+}
+
 export default function PropertiesPage() {
   const propertiesQuery = useProperties();
   const updateProperty = useUpdateProperty();
@@ -56,8 +60,9 @@ export default function PropertiesPage() {
             header: "Imagen",
             render: (property) => {
               const image = property.images.find((item) => item.is_main) ?? property.images[0];
-              return image ? (
-                <img src={image.image_url} alt={property.title} className="h-14 w-20 rounded-xl object-cover" />
+              const imageSrc = getImageSrc(image);
+              return imageSrc ? (
+                <img src={imageSrc} alt={property.title} className="h-14 w-20 rounded-xl object-cover" />
               ) : (
                 <div className="flex h-14 w-20 items-center justify-center rounded-xl bg-muted text-xs text-muted-foreground">
                   Sin imagen

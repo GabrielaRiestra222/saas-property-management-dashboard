@@ -40,7 +40,7 @@ import { formatCurrency, formatDate } from "@/lib/formatters";
 import { useBookings } from "@/lib/hooks/useBookings";
 import { useCalendarBlocks, useCreateCalendarBlock } from "@/lib/hooks/useCalendar";
 import { useProperty } from "@/lib/hooks/useProperties";
-import type { CalendarBlock } from "@/types";
+import type { CalendarBlock, PropertyImage } from "@/types";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -69,6 +69,10 @@ const BLOCK_LABELS: Record<CalendarBlock["reason"], string> = {
 type CalEvent = Event & {
   meta: { type: CalendarBlock["reason"]; color: string; bookingId?: number; notes?: string };
 };
+
+function getImageSrc(image?: PropertyImage) {
+  return image?.image_url || image?.image || "";
+}
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
@@ -114,6 +118,7 @@ export default function PropertyDetailPage() {
   }, [bookings, blocks]);
 
   const mainImage = property?.images.find((i) => i.is_main) ?? property?.images[0];
+  const mainImageSrc = getImageSrc(mainImage);
 
   if (propertyQuery.isLoading) {
     return (
@@ -166,9 +171,9 @@ export default function PropertyDetailPage() {
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         {/* Main image */}
         <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-          {mainImage ? (
+          {mainImageSrc ? (
             <img
-              src={mainImage.image_url}
+              src={mainImageSrc}
               alt={property.title}
               className="h-72 w-full object-cover lg:h-80"
             />
@@ -370,7 +375,7 @@ export default function PropertyDetailPage() {
                   {property.images.map((img) => (
                     <img
                       key={img.id}
-                      src={img.image_url}
+                      src={getImageSrc(img)}
                       alt={img.caption || property.title}
                       className="aspect-square rounded-xl object-cover"
                     />
