@@ -85,12 +85,12 @@ export default function MaintenancePage() {
       />
 
       {maintenanceQuery.isError ? (
-        <div className="flex items-start justify-between gap-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
+        <div className="flex items-start justify-between gap-4 rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] p-4 text-[var(--danger)]">
           <div className="flex gap-3">
             <AlertCircle className="mt-0.5 size-5 shrink-0" />
             <div>
               <p className="font-medium">No se pudo cargar el listado de incidencias.</p>
-              <p className="text-sm text-rose-600">
+              <p className="text-sm text-[var(--danger)]">
                 Comprueba que el backend esté activo en http://127.0.0.1:8000/api y que exista el endpoint /maintenance/.
               </p>
             </div>

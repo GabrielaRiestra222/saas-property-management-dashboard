@@ -14,7 +14,7 @@ const channels = [
   { name: "Booking.com", status: "Pendiente de conectar", color: "bg-slate-100 text-slate-700" },
   { name: "Vrbo", status: "Pendiente de conectar", color: "bg-slate-100 text-slate-700" },
   { name: "Expedia", status: "Pendiente de conectar", color: "bg-slate-100 text-slate-700" },
-  { name: "Web directa", status: "Con catálogo local", color: "bg-emerald-100 text-emerald-700" },
+  { name: "Web directa", status: "Con catálogo local", color: "bg-[var(--success-bg)] text-[var(--success)]" },
 ];
 
 export default function ChannelManagerPage() {

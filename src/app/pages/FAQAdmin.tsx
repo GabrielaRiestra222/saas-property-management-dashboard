@@ -36,7 +36,7 @@ export default function FAQAdminPage() {
       <PageHeader title="FAQs admin" subtitle="Gestiona categorías y preguntas frecuentes publicadas en el portal." />
 
       <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-semibold">Categorías</h3>
             <Button
@@ -60,7 +60,7 @@ export default function FAQAdminPage() {
               <button
                 key={category.id}
                 type="button"
-                className={`w-full rounded-2xl border px-4 py-3 text-left ${selectedCategory?.id === category.id ? "border-primary bg-primary/5" : "border-border"}`}
+                className={`w-full rounded-md border px-4 py-3 text-left ${selectedCategory?.id === category.id ? "border-primary bg-primary/5" : "border-border"}`}
                 onClick={() => setSelectedCategoryId(category.id)}
               >
                 <p className="text-xs text-muted-foreground">Orden {category.order}</p>
@@ -70,7 +70,7 @@ export default function FAQAdminPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="font-semibold">{selectedCategory?.name ?? "Selecciona una categoría"}</h3>
@@ -96,7 +96,7 @@ export default function FAQAdminPage() {
           </div>
 
           {selectedCategory ? (
-            <div className="mb-5 space-y-3 rounded-2xl border border-dashed border-border p-4">
+            <div className="mb-5 space-y-3 rounded-md border border-dashed border-border p-4">
               <Input placeholder="Pregunta" value={newFaq.question} onChange={(event) => setNewFaq((current) => ({ ...current, question: event.target.value }))} />
               <Textarea placeholder="Respuesta" value={newFaq.answer} onChange={(event) => setNewFaq((current) => ({ ...current, answer: event.target.value }))} />
             </div>
@@ -104,7 +104,7 @@ export default function FAQAdminPage() {
 
           <div className="space-y-3">
             {selectedFaqs.map((faq, index) => (
-              <div key={faq.id} className="rounded-2xl border border-border p-4">
+              <div key={faq.id} className="rounded-md border border-border p-4">
                 <Input value={faq.question} onChange={(event) => updateFAQ.mutate({ id: faq.id, payload: { question: event.target.value } })} />
                 <Textarea className="mt-3" value={faq.answer} onChange={(event) => updateFAQ.mutate({ id: faq.id, payload: { answer: event.target.value } })} />
                 <div className="mt-3 flex flex-wrap items-center gap-2">

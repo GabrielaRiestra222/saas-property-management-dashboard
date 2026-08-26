@@ -46,7 +46,7 @@ export default function DataTable<T>({
   hasNextPage,
 }: DataTableProps<T>) {
   return (
-    <div className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-sm">
+    <div className="space-y-3 rounded-xl border border-border bg-card p-2 shadow-sm">
       <Table>
         <TableHeader>
           <TableRow>

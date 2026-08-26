@@ -74,7 +74,7 @@ export default function CleaningPage() {
         action={<Button onClick={() => setOpen(true)}><Plus className="mr-2 size-4" />Nueva tarea de limpieza</Button>}
       />
 
-      <div className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-4 shadow-sm lg:flex-row">
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-sm lg:flex-row">
         <div className="flex gap-2">
           <Button variant={view === "list" ? "default" : "outline"} onClick={() => setView("list")}>Lista</Button>
           <Button variant={view === "calendar" ? "default" : "outline"} onClick={() => setView("calendar")}>Calendario</Button>
@@ -130,7 +130,7 @@ export default function CleaningPage() {
           ]}
         />
       ) : (
-        <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <div className="h-[680px]">
             <Calendar
               localizer={localizer}

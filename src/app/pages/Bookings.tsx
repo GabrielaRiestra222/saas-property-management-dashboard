@@ -82,7 +82,7 @@ export default function BookingsPage() {
         }
       />
 
-      <div className="grid gap-3 rounded-3xl border border-border bg-card p-4 shadow-sm md:grid-cols-5">
+      <div className="grid gap-3 rounded-xl border border-border bg-card p-4 shadow-sm md:grid-cols-5">
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>
@@ -107,7 +107,7 @@ export default function BookingsPage() {
       </div>
 
       {bookingsQuery.isError ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700">
+        <div className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] p-6 text-[var(--danger)]">
           <p>No se pudieron cargar las reservas.</p>
           <Button className="mt-4" onClick={() => void bookingsQuery.refetch()}>Reintentar</Button>
         </div>
@@ -156,7 +156,7 @@ export default function BookingsPage() {
             key: "paid",
             header: "Pagado",
             render: (booking) => (
-              <span className="text-green-700">{formatCurrency(booking.total_paid)}</span>
+              <span className="text-[var(--success)]">{formatCurrency(booking.total_paid)}</span>
             ),
           },
           {
@@ -164,7 +164,7 @@ export default function BookingsPage() {
             header: "Pendiente",
             render: (booking) => {
               const pending = Number(booking.remaining_balance);
-              return <span className={pending > 0 ? "font-medium text-orange-600" : "text-muted-foreground"}>{formatCurrency(pending)}</span>;
+              return <span className={pending > 0 ? "font-medium text-[var(--warning)]" : "text-muted-foreground"}>{formatCurrency(pending)}</span>;
             },
           },
           {
@@ -173,7 +173,7 @@ export default function BookingsPage() {
             render: (booking) => {
               const count = getPendingPaymentsCount(booking);
               return (
-                <span className={count > 0 ? "font-semibold text-orange-600" : "text-muted-foreground"}>
+                <span className={count > 0 ? "font-semibold text-[var(--warning)]" : "text-muted-foreground"}>
                   {count}
                 </span>
               );

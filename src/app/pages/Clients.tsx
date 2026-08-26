@@ -21,7 +21,8 @@ import PageHeader from "@/components/ui/PageHeader";
 import { formatCurrency, formatDate, fullName } from "@/lib/formatters";
 import { useBookings } from "@/lib/hooks/useBookings";
 import { useClient, useClients, useUpdateClient } from "@/lib/hooks/useClients";
-import type { Client } from "@/types";
+import { useImageUpload } from "@/lib/hooks/useImageUpload";
+import type { Booking, Client } from "@/types";
 
 const editSchema = z.object({
   first_name: z.string().min(1),
@@ -35,6 +36,70 @@ const editSchema = z.object({
 });
 
 type EditFormValues = z.infer<typeof editSchema>;
+
+function BookingContractPanel({ booking }: { booking: Booking }) {
+  const { uploadFile, uploading } = useImageUpload();
+  const storageKey = `booking-documents-${booking.id}`;
+  const [documents, setDocuments] = useState<Array<{ name: string; url: string }>>(() => {
+    const stored = localStorage.getItem(storageKey);
+    const parsed = stored ? JSON.parse(stored) as Array<{ name: string; url: string }> : [];
+    return booking.contract_url ? [{ name: "Contrato", url: booking.contract_url }, ...parsed] : parsed;
+  });
+
+  async function addContractPdf(fileList: File[]) {
+    const pdfs = fileList.filter((file) => file.type === "application/pdf");
+    if (!pdfs.length) {
+      return;
+    }
+
+    const nextDocuments = [...documents];
+    for (const pdf of pdfs) {
+      const result = await uploadFile(pdf, { bookingId: booking.id, kind: "contract" });
+      if (result) {
+        nextDocuments.push({ name: result.filename || pdf.name, url: result.url });
+      }
+    }
+    setDocuments(nextDocuments);
+    localStorage.setItem(storageKey, JSON.stringify(nextDocuments));
+  }
+
+  return (
+    <div className="mt-2">
+      <div
+        className="rounded-xl border-2 border-dashed border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={async (event) => {
+          event.preventDefault();
+          await addContractPdf(Array.from(event.dataTransfer.files));
+        }}
+      >
+        <input
+          id={`booking-contract-${booking.id}`}
+          type="file"
+          accept="application/pdf"
+          className="hidden"
+          onChange={async (event) => {
+            await addContractPdf(Array.from(event.target.files || []));
+            event.target.value = "";
+          }}
+        />
+        <Button type="button" size="sm" variant="outline" disabled={uploading} onClick={() => document.getElementById(`booking-contract-${booking.id}`)?.click()}>
+          {uploading ? "Subiendo..." : "Adjuntar contrato o documentos"}
+        </Button>
+        <span className="ml-2 text-xs">PDF</span>
+      </div>
+      {documents.length > 0 ? (
+        <div className="mt-1 flex flex-wrap gap-2">
+          {documents.map((document, index) => (
+            <a key={`${document.name}-${index}`} href={document.url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+              {document.name}
+            </a>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function DetailModal({ clientId, onClose }: { clientId: number; onClose: () => void }) {
   const clientQuery = useClient(clientId);
@@ -65,7 +130,12 @@ function DetailModal({ clientId, onClose }: { clientId: number; onClose: () => v
               rows={bookingsQuery.data?.results ?? []}
               emptyMessage="Sin reservas."
               columns={[
-                { key: "property", header: "Propiedad", render: (b) => b.apartment_title ?? `#${b.apartment}` },
+                { key: "property", header: "Propiedad", render: (b) => (
+                  <div>
+                    <p>{b.apartment_title ?? `#${b.apartment}`}</p>
+                    <BookingContractPanel booking={b} />
+                  </div>
+                ) },
                 { key: "checkin", header: "Check-in", render: (b) => formatDate(b.check_in) },
                 { key: "checkout", header: "Check-out", render: (b) => formatDate(b.check_out) },
                 { key: "total", header: "Total", render: (b) => formatCurrency(b.total_price) },
@@ -92,7 +162,16 @@ function EditModal({ clientId, onClose }: { clientId: number; onClose: () => voi
 
   const form = useForm<EditFormValues>({
     resolver: zodResolver(editSchema),
-    defaultValues: { first_name: "", last_name: "", email: "", phone: "", document_id: "", nationality: "", passport: "", notes: "" },
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      document_id: "",
+      nationality: "",
+      passport: "",
+      notes: "",
+    },
   });
 
   useEffect(() => {
@@ -167,7 +246,7 @@ export default function ClientsPage() {
     <div className="space-y-6">
       <PageHeader title="Clientes" subtitle="Directorio de huéspedes con acceso rápido al historial de reservas." />
 
-      <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <Input placeholder="Buscar por nombre o email" value={search} onChange={(event) => setSearch(event.target.value)} />
       </div>
 

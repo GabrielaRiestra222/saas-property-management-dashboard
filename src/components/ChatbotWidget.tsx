@@ -89,7 +89,7 @@ export default function ChatbotWidget() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-6 right-6 z-50">
       {open ? (
         <div className="flex h-[500px] w-[min(400px,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
           <div className="flex items-center justify-between border-b border-border bg-[color:color-mix(in_srgb,var(--primary)_12%,white)] px-4 py-3">
@@ -166,7 +166,7 @@ export default function ChatbotWidget() {
       {!open ? (
         <Button
           size="lg"
-          className="h-14 rounded-full bg-[color:#7d2838] px-5 shadow-xl hover:bg-[color:#69222f]"
+          className="h-14 translate-x-[-5.5rem] rounded-full bg-[color:#7d2838] px-5 shadow-xl hover:bg-[color:#69222f]"
           onClick={() => setOpen(true)}
         >
           <MessageCircle className="mr-2 size-5" />

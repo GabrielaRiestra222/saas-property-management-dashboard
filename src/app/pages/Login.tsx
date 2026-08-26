@@ -47,7 +47,7 @@ export default function LoginPage() {
     } catch {
       form.setError("root", {
         type: "server",
-        message: "Credenciales inválidas. Usa usuario toti y contraseña toti.",
+        message: "Credenciales inválidas. Revisa el usuario y la contraseña.",
       });
     }
   }
@@ -55,23 +55,23 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-5xl items-center justify-center">
-        <div className="grid w-full overflow-hidden rounded-2xl border border-border bg-card shadow-xl lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="hidden bg-[#17324D] p-10 text-white lg:block">
+        <div className="grid w-full overflow-hidden rounded-md border border-border bg-card shadow-xl lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="hidden bg-sidebar p-10 text-sidebar-foreground lg:block">
             <div className="flex items-center gap-3">
-              <div className="flex size-12 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
+              <div className="flex size-12 items-center justify-center rounded-md bg-sidebar-accent ring-1 ring-sidebar-foreground/10">
                 <Building2 className="size-6" />
               </div>
               <div>
-                <p className="text-lg font-semibold">Apartments PMS</p>
-                <p className="text-sm text-white/70">Gestión centralizada de alojamientos</p>
+                <p className="font-display text-xl">Apartments PMS</p>
+                <p className="text-sm text-sidebar-foreground/60">Gestión centralizada de alojamientos</p>
               </div>
             </div>
 
             <div className="mt-20 space-y-6">
-              <h1 className="text-4xl font-semibold leading-tight tracking-tight">
+              <h1 className="font-display text-4xl font-medium leading-tight tracking-tight">
                 Gestiona reservas, pagos y operativa diaria desde un solo panel.
               </h1>
-              <p className="max-w-md text-base leading-7 text-white/72">
+              <p className="max-w-md text-base leading-7 text-sidebar-foreground/65">
                 Inicia sesión para revisar check-ins de hoy, cobros pendientes, limpieza, mantenimiento y el rendimiento de tu portafolio.
               </p>
             </div>
@@ -79,14 +79,11 @@ export default function LoginPage() {
 
           <div className="p-8 sm:p-12">
             <div className="mb-8 text-center lg:text-left">
-              <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm lg:mx-0">
+              <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm lg:mx-0">
                 <Building2 className="size-8" />
               </div>
-              <h2 className="text-3xl font-semibold tracking-tight text-foreground">Acceso al panel</h2>
+              <h2 className="font-display text-3xl font-medium tracking-tight text-foreground">Acceso al panel</h2>
               <p className="mt-2 text-sm text-muted-foreground">Introduce tus credenciales para continuar.</p>
-              <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-xs font-medium text-foreground">
-                Usuario: toti · Contraseña: toti
-              </p>
             </div>
 
             <Form {...form}>
@@ -120,7 +117,7 @@ export default function LoginPage() {
                 />
 
                 {form.formState.errors.root ? (
-                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 shadow-sm">
+                  <div className="rounded-md border border-[var(--danger-border)] bg-[var(--danger-bg)] px-4 py-3 text-sm text-[var(--danger)] shadow-sm">
                     {form.formState.errors.root.message}
                   </div>
                 ) : null}

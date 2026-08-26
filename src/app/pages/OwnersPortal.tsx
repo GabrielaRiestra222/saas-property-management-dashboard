@@ -57,7 +57,7 @@ export default function OwnersPortalPage() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Ingresos</p>
-                  <p className="font-semibold text-emerald-700">{formatCurrency(income)}</p>
+                  <p className="font-semibold text-[var(--success)]">{formatCurrency(income)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Neto</p>

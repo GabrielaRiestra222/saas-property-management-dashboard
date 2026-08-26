@@ -6,6 +6,20 @@ const api = axios.create({
   baseURL,
 });
 
+const apiOrigin = baseURL.replace(/\/api\/?$/, "");
+
+export function resolveMediaUrl(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  if (/^(https?:|data:|blob:)/i.test(value)) {
+    return value;
+  }
+
+  return new URL(value, apiOrigin || window.location.origin).toString();
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
 

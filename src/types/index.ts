@@ -22,7 +22,21 @@ export interface Property {
   description: string;
   location: string;
   address: string;
+  unit_number?: string;
+  city?: string;
+  postal_code?: string;
+  province?: string;
+  country?: string;
   price_per_night: string;
+  price_15_days?: string;
+  price_1_month?: string;
+  price_2_months?: string;
+  price_3_5_months?: string;
+  price_6_months?: string;
+  long_stay_discount_enabled?: boolean;
+  long_stay_discount_percent?: string;
+  last_minute_discount_enabled?: boolean;
+  last_minute_discount_percent?: string;
   cleaning_fee: string;
   max_guests: number;
   rooms: number;
@@ -32,6 +46,16 @@ export interface Property {
   check_out_time: string;
   rules: string;
   tourist_registration_number: string;
+  cup_number?: string;
+  property_registry_number?: string;
+  cadastral_reference?: string;
+  owner_name?: string;
+  rental_type?: string;
+  orientation?: string;
+  viewpoint?: string;
+  windows?: string;
+  housing_type?: string;
+  public_url?: string;
   size_m2: number | null;
   floor: string;
   construction_year: number | null;
@@ -39,11 +63,18 @@ export interface Property {
   distribution: Record<string, number | string>;
   beds: Array<{ label: string; size?: string; count?: number }>;
   equipment: Record<string, string[]>;
+  video_url?: string;
+  virtual_tour_url?: string;
+  virtual_tour_2_url?: string;
+  other_resources?: string;
+  chat_url?: string;
+  resources?: Array<{ id: number; name: string; url: string; type: string }>;
   warnings: string[];
   is_active: boolean;
   is_published: boolean;
   images: PropertyImage[];
-  amenities: Amenity[];
+  amenities: number[];
+  amenity_details: Amenity[];
   organization: number;
 }
 
@@ -57,6 +88,16 @@ export interface Client {
   nationality: string;
   passport: string;
   notes: string;
+  contract_status?: string;
+  contract_url?: string;
+  invoice_tax_base?: string;
+  invoice_vat?: string;
+  invoice_total?: string;
+  payment_method?: string;
+  cleaning_expenses?: string;
+  repair_expenses?: string;
+  welcome_pack_expenses?: string;
+  other_expenses?: string;
   created_at: string;
 }
 
@@ -72,6 +113,16 @@ export interface Booking {
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
   num_guests: number;
   notes: string;
+  contract_status?: string;
+  contract_url?: string;
+  invoice_tax_base?: string;
+  invoice_vat?: string;
+  invoice_total?: string;
+  payment_method?: string;
+  cleaning_expenses?: string;
+  repair_expenses?: string;
+  welcome_pack_expenses?: string;
+  other_expenses?: string;
   total_paid: string;
   remaining_balance: string;
   payments?: BookingPayment[];

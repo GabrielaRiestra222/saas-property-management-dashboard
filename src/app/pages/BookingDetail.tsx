@@ -149,11 +149,11 @@ export default function BookingDetailPage() {
   const existingPayments = paymentsQuery.data?.results ?? [];
 
   if (!booking && bookingQuery.isLoading) {
-    return <div className="rounded-3xl border border-border bg-card p-8">Cargando detalle...</div>;
+    return <div className="rounded-xl border border-border bg-card p-8">Cargando detalle...</div>;
   }
 
   if (!booking) {
-    return <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700">No se encontró la reserva.</div>;
+    return <div className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] p-6 text-[var(--danger)]">No se encontró la reserva.</div>;
   }
 
   async function generateCleanings() {
@@ -241,8 +241,8 @@ export default function BookingDetailPage() {
 
       {/* Hero card: client + property + dates */}
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="flex items-start gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10">
+        <div className="flex items-start gap-4 rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-primary/10">
             <User className="size-5 text-primary" />
           </div>
           <div>
@@ -257,8 +257,8 @@ export default function BookingDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-start gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10">
+        <div className="flex items-start gap-4 rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-primary/10">
             <Building2 className="size-5 text-primary" />
           </div>
           <div>
@@ -280,10 +280,10 @@ export default function BookingDetailPage() {
 
       {/* Price mismatch warning */}
       {priceIsEstimated ? (
-        <div className="flex flex-col gap-3 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-900 dark:bg-amber-950/30 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-xl border border-[var(--warning-border)] bg-[var(--warning-bg)] p-4 text-sm dark:border-amber-900 dark:bg-amber-950/30 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-medium text-amber-800 dark:text-amber-300">Precio guardado incorrecto (0 €)</p>
-            <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+            <p className="font-medium text-[var(--warning)] dark:text-amber-300">Precio guardado incorrecto (0 €)</p>
+            <p className="mt-0.5 text-[var(--warning)] dark:text-amber-400">
               Precio calculado según tarifa actual de la propiedad: <strong>{formatCurrency(calculatedPrice)}</strong>
               {property ? ` (${nights} noches × ${formatCurrency(property.price_per_night)} + ${formatCurrency(property.cleaning_fee)} limpieza)` : ""}
             </p>
@@ -291,7 +291,7 @@ export default function BookingDetailPage() {
           <Button
             size="sm"
             variant="outline"
-            className="shrink-0 border-amber-400 text-amber-800 hover:bg-amber-100 dark:text-amber-300"
+            className="shrink-0 border-[var(--warning-border)] text-[var(--warning)] hover:bg-[var(--warning-bg)] dark:text-amber-300"
             disabled={updateBooking.isPending}
             onClick={() =>
               updateBooking.mutate({
@@ -306,7 +306,7 @@ export default function BookingDetailPage() {
       ) : null}
 
       {/* Financial summary */}
-      <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
           <TrendingUp className="size-4 text-primary" />
           <h3 className="font-semibold">Resumen financiero</h3>
@@ -317,24 +317,24 @@ export default function BookingDetailPage() {
           )}
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl bg-muted/50 p-4">
+          <div className="rounded-md bg-muted/50 p-4">
             <p className="text-xs text-muted-foreground">Total reserva{priceIsEstimated ? " (estimado)" : ""}</p>
             <p className="mt-1 text-xl font-bold">{formatCurrency(totalPrice)}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">{nights} noches · {formatCurrency(totalPrice / nights)}/noche</p>
           </div>
           {agency ? (
-            <div className="rounded-2xl bg-orange-50 p-4 dark:bg-orange-950/20">
+            <div className="rounded-md bg-[var(--warning-bg)] p-4 dark:bg-orange-950/20">
               <p className="text-xs text-muted-foreground">Comisión agencia</p>
-              <p className="mt-1 text-xl font-bold text-orange-600">− {formatCurrency(agencyCommission)}</p>
+              <p className="mt-1 text-xl font-bold text-[var(--warning)]">− {formatCurrency(agencyCommission)}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">{agency.commission_percentage}% de {formatCurrency(totalPrice)}</p>
             </div>
           ) : null}
-          <div className="rounded-2xl bg-green-50 p-4 dark:bg-green-950/20">
+          <div className="rounded-md bg-[var(--success-bg)] p-4 dark:bg-green-950/20">
             <p className="text-xs text-muted-foreground">Ingreso neto</p>
-            <p className="mt-1 text-xl font-bold text-green-700">{formatCurrency(netIncome)}</p>
+            <p className="mt-1 text-xl font-bold text-[var(--success)]">{formatCurrency(netIncome)}</p>
             {agency ? <p className="mt-0.5 text-xs text-muted-foreground">Tras comisión de agencia</p> : null}
           </div>
-          <div className="rounded-2xl bg-blue-50 p-4 dark:bg-blue-950/20">
+          <div className="rounded-md bg-blue-50 p-4 dark:bg-blue-950/20">
             <p className="text-xs text-muted-foreground">Cobrado / Pendiente</p>
             <p className="mt-1 text-xl font-bold">{formatCurrency(booking.total_paid)}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">Pendiente: {formatCurrency(booking.remaining_balance)}</p>
@@ -352,12 +352,12 @@ export default function BookingDetailPage() {
 
         {/* Existing payments */}
         <TabsContent value="payments" className="space-y-4">
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <div className="space-y-3">
               {existingPayments.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Todavía no hay pagos registrados. Usa el plan de pagos para generarlos automáticamente.</p>
               ) : existingPayments.map((payment) => (
-                <div key={payment.id} className="flex flex-col gap-3 rounded-2xl border border-border p-4 md:flex-row md:items-center md:justify-between">
+                <div key={payment.id} className="flex flex-col gap-3 rounded-md border border-border p-4 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="font-medium">{formatCurrency(payment.amount_due)} · {payment.payment_method}</p>
                     <p className="text-sm text-muted-foreground">
@@ -376,7 +376,7 @@ export default function BookingDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <h3 className="mb-4 font-semibold">Añadir pago manual</h3>
             <Form {...form}>
               <form
@@ -420,7 +420,7 @@ export default function BookingDetailPage() {
 
         {/* Auto payment schedule */}
         <TabsContent value="schedule" className="space-y-4">
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="font-semibold">Plan de pagos sugerido</h3>
@@ -450,20 +450,20 @@ export default function BookingDetailPage() {
                 return (
                   <div
                     key={i}
-                    className={`flex items-center gap-4 rounded-2xl border p-4 ${
+                    className={`flex items-center gap-4 rounded-md border p-4 ${
                       isReturn
-                        ? "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/20"
+                        ? "border-[var(--success-border)] bg-[var(--success-bg)] dark:border-green-900 dark:bg-green-950/20"
                         : isDeposit
-                          ? "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20"
+                          ? "border-[var(--warning-border)] bg-[var(--warning-bg)] dark:border-amber-900 dark:bg-amber-950/20"
                           : "border-border"
                     }`}
                   >
                     <div
                       className={`flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                         isReturn
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                          ? "bg-[var(--success-bg)] text-[var(--success)] dark:bg-green-900/40 dark:text-green-300"
                           : isDeposit
-                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+                            ? "bg-[var(--warning-bg)] text-[var(--warning)] dark:bg-amber-900/40 dark:text-amber-300"
                             : "bg-primary/10 text-primary"
                       }`}
                     >
@@ -477,7 +477,7 @@ export default function BookingDetailPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-semibold ${isReturn ? "text-green-700" : isDeposit ? "text-amber-700" : ""}`}>
+                      <p className={`font-semibold ${isReturn ? "text-[var(--success)]" : isDeposit ? "text-[var(--warning)]" : ""}`}>
                         {isReturn ? "+" : ""}{formatCurrency(item.amount)}
                       </p>
                       {pct !== null && (
@@ -485,7 +485,7 @@ export default function BookingDetailPage() {
                       )}
                     </div>
                     {isReturn ? (
-                      <Badge variant="outline" className="border-green-400 text-green-700 text-xs">
+                      <Badge variant="outline" className="border-[var(--success-border)] text-[var(--success)] text-xs">
                         Recordatorio
                       </Badge>
                     ) : (
@@ -515,11 +515,11 @@ export default function BookingDetailPage() {
             </div>
 
             {agency ? (
-              <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4 text-sm dark:border-orange-900 dark:bg-orange-950/30">
-                <p className="font-medium text-orange-800 dark:text-orange-300">Desglose con agencia — {agency.name}</p>
+              <div className="mt-4 rounded-md border border-[var(--warning-border)] bg-[var(--warning-bg)] p-4 text-sm dark:border-orange-900 dark:bg-orange-950/30">
+                <p className="font-medium text-[var(--warning)] dark:text-orange-300">Desglose con agencia — {agency.name}</p>
                 <div className="mt-2 grid gap-1 sm:grid-cols-3">
-                  <div><span className="text-muted-foreground">Comisión ({agency.commission_percentage}%): </span><span className="font-medium text-orange-700 dark:text-orange-400">−{formatCurrency(agencyCommission)}</span></div>
-                  <div><span className="text-muted-foreground">Ingreso neto: </span><span className="font-semibold text-green-700">{formatCurrency(netIncome)}</span></div>
+                  <div><span className="text-muted-foreground">Comisión ({agency.commission_percentage}%): </span><span className="font-medium text-[var(--warning)] dark:text-orange-400">−{formatCurrency(agencyCommission)}</span></div>
+                  <div><span className="text-muted-foreground">Ingreso neto: </span><span className="font-semibold text-[var(--success)]">{formatCurrency(netIncome)}</span></div>
                   <div><span className="text-muted-foreground">Por noche (neto): </span><span className="font-medium">{formatCurrency(netIncome / nights)}</span></div>
                 </div>
               </div>
@@ -531,7 +531,7 @@ export default function BookingDetailPage() {
         <TabsContent value="cleaning" className="space-y-4">
           {/* Auto-generate button */}
           {cleaningQuery.data?.results?.length === 0 && (
-            <div className="flex items-center justify-between rounded-3xl border border-dashed border-border bg-muted/40 p-4">
+            <div className="flex items-center justify-between rounded-xl border border-dashed border-border bg-muted/40 p-4">
               <div>
                 <p className="text-sm font-medium">Sin tareas de limpieza</p>
                 <p className="text-xs text-muted-foreground">
@@ -549,12 +549,12 @@ export default function BookingDetailPage() {
           )}
 
           {/* List all cleaning tasks for this booking */}
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm space-y-3">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-3">
             {(cleaningQuery.data?.results ?? []).length === 0 ? (
               <p className="text-sm text-muted-foreground">Pulsa el botón de arriba para generar las limpiezas automáticamente.</p>
             ) : (
               (cleaningQuery.data?.results ?? []).map((task) => (
-                <div key={task.id} className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between rounded-2xl border border-border p-4">
+                <div key={task.id} className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between rounded-md border border-border p-4">
                   <div>
                     <p className="font-medium">{task.notes || (task.property_title ?? `Propiedad #${task.property}`)}</p>
                     <p className="text-sm text-muted-foreground">Programada para {formatDate(task.scheduled_date)}</p>
@@ -584,7 +584,7 @@ export default function BookingDetailPage() {
 
         {/* Notes */}
         <TabsContent value="notes">
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm space-y-3">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-3">
             <Textarea
               defaultValue={booking.notes}
               className="min-h-40"

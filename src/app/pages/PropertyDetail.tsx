@@ -40,7 +40,7 @@ import { formatCurrency, formatDate } from "@/lib/formatters";
 import { useBookings } from "@/lib/hooks/useBookings";
 import { useCalendarBlocks, useCreateCalendarBlock } from "@/lib/hooks/useCalendar";
 import { useProperty } from "@/lib/hooks/useProperties";
-import type { CalendarBlock, PropertyImage } from "@/types";
+import type { CalendarBlock, Property, PropertyImage } from "@/types";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -72,6 +72,21 @@ type CalEvent = Event & {
 
 function getImageSrc(image?: PropertyImage) {
   return image?.image_url || image?.image || "";
+}
+
+function firstLine(value?: string[]) {
+  return Array.isArray(value) ? value[0] ?? "" : "";
+}
+
+function propertyField(property: Property, key: string) {
+  const direct = property[key as keyof typeof property];
+  if (typeof direct === "string") {
+    return direct;
+  }
+  if (typeof direct === "boolean") {
+    return direct ? "true" : "";
+  }
+  return firstLine(property.equipment?.[key]);
 }
 
 export default function PropertyDetailPage() {
@@ -124,19 +139,35 @@ export default function PropertyDetailPage() {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-64 w-full rounded-3xl" />
-        <Skeleton className="h-96 w-full rounded-3xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-96 w-full rounded-xl" />
       </div>
     );
   }
 
   if (!property) {
     return (
-      <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700">
+      <div className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] p-6 text-[var(--danger)]">
         No se encontró la propiedad.
       </div>
     );
   }
+
+  const priceRows = [
+    ["15 días", propertyField(property, "price_15_days")],
+    ["1 mes", propertyField(property, "price_1_month")],
+    ["2 meses", propertyField(property, "price_2_months")],
+    ["3 a 5 meses", propertyField(property, "price_3_5_months")],
+    ["+ 6 meses", propertyField(property, "price_6_months")],
+  ].filter(([, value]) => value);
+
+  const hasLastMinuteOffer = Boolean(property.last_minute_discount_enabled) || Boolean(propertyField(property, "last_minute_discount_percent"));
+  const resourceRows = [
+    ["Video", propertyField(property, "video") || propertyField(property, "video_url")],
+    ["Tour virtual", propertyField(property, "virtual_tour") || propertyField(property, "virtual_tour_url")],
+    ["Tour virtual 2", propertyField(property, "virtual_tour_2") || propertyField(property, "virtual_tour_2_url")],
+    ["Chat", propertyField(property, "chat") || propertyField(property, "chat_url")],
+  ].filter(([, value]) => value);
 
   return (
     <div className="space-y-6">
@@ -170,7 +201,7 @@ export default function PropertyDetailPage() {
       {/* Hero */}
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         {/* Main image */}
-        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           {mainImageSrc ? (
             <img
               src={mainImageSrc}
@@ -186,11 +217,28 @@ export default function PropertyDetailPage() {
 
         {/* Key info */}
         <div className="space-y-4">
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            {hasLastMinuteOffer && (
+              <div className="mb-4 rounded-md border border-[var(--warning-border)] bg-[var(--warning-bg)] px-4 py-3 text-sm font-semibold text-[var(--warning)] shadow-sm">
+                Oferta última hora
+                {propertyField(property, "last_minute_discount_percent")
+                  ? ` · ${propertyField(property, "last_minute_discount_percent")}% descuento`
+                  : ""}
+              </div>
+            )}
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="size-4 shrink-0" />
-                <span>{property.address || property.location}</span>
+                <span>
+                  {[
+                    propertyField(property, "unit_number"),
+                    property.address || property.location,
+                    propertyField(property, "city"),
+                    propertyField(property, "postal_code"),
+                    propertyField(property, "province"),
+                    propertyField(property, "country"),
+                  ].filter(Boolean).join(" · ")}
+                </span>
               </div>
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
@@ -208,8 +256,18 @@ export default function PropertyDetailPage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold">{formatCurrency(property.price_per_night)}</span>
-                <span className="text-muted-foreground">/ noche</span>
+                <span className="text-muted-foreground">precio base</span>
               </div>
+              {priceRows.length > 0 && (
+                <div className="grid gap-2 rounded-md bg-muted p-3">
+                  {priceRows.map(([label, value]) => (
+                    <p key={label} className="flex justify-between gap-3">
+                      <span className="text-muted-foreground">{label}</span>
+                      <span className="font-medium">{formatCurrency(value)}</span>
+                    </p>
+                  ))}
+                </div>
+              )}
               <p className="text-muted-foreground">
                 Limpieza: {formatCurrency(property.cleaning_fee)} · Mín. {property.min_nights} noche{property.min_nights !== 1 ? "s" : ""}
               </p>
@@ -220,27 +278,27 @@ export default function PropertyDetailPage() {
                 {property.is_active ? "Activa" : "Inactiva"}
               </Badge>
               <Badge variant={property.is_published ? "default" : "outline"}>
-                {property.is_published ? "Publicada" : "Borrador"}
+                {property.is_published ? "URL activa" : "No publicada"}
               </Badge>
             </div>
           </div>
 
           {/* Amenities preview */}
-          {property.amenities.length > 0 && (
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+          {property.amenity_details.length > 0 && (
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="mb-2 flex items-center gap-2">
                 <Sparkles className="size-4 text-primary" />
                 <p className="text-sm font-medium">Servicios</p>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {property.amenities.slice(0, 8).map((a) => (
+                {property.amenity_details.slice(0, 8).map((a) => (
                   <Badge key={a.id} variant="secondary" className="text-xs">
                     {a.name}
                   </Badge>
                 ))}
-                {property.amenities.length > 8 && (
+                {property.amenity_details.length > 8 && (
                   <Badge variant="outline" className="text-xs">
-                    +{property.amenities.length - 8}
+                    +{property.amenity_details.length - 8}
                   </Badge>
                 )}
               </div>
@@ -263,7 +321,7 @@ export default function PropertyDetailPage() {
         {/* Calendar tab */}
         <TabsContent value="calendar" className="space-y-4">
           {/* Legend + add block */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
             <div className="flex flex-wrap gap-2">
               {Object.entries(BLOCK_LABELS).map(([key, label]) => (
                 <span key={key} className="flex items-center gap-1.5 text-xs">
@@ -281,7 +339,7 @@ export default function PropertyDetailPage() {
             </Button>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <Calendar
               localizer={localizer}
               events={events}
@@ -317,7 +375,7 @@ export default function PropertyDetailPage() {
 
         {/* Bookings tab */}
         <TabsContent value="bookings">
-          <div className="rounded-3xl border border-border bg-card shadow-sm">
+          <div className="rounded-xl border border-border bg-card shadow-sm">
             {bookings.length === 0 ? (
               <p className="p-6 text-sm text-muted-foreground">No hay reservas para esta propiedad.</p>
             ) : (
@@ -345,7 +403,7 @@ export default function PropertyDetailPage() {
 
         {/* Info tab */}
         <TabsContent value="info">
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm space-y-4">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
             {property.description && (
               <div>
                 <p className="mb-1 text-sm font-medium text-muted-foreground">Descripción</p>
@@ -361,12 +419,41 @@ export default function PropertyDetailPage() {
             <div className="grid gap-2 text-sm sm:grid-cols-2">
               <p><span className="text-muted-foreground">Check-in: </span>{property.check_in_time}</p>
               <p><span className="text-muted-foreground">Check-out: </span>{property.check_out_time}</p>
+              {propertyField(property, "unit_number") && <p><span className="text-muted-foreground">Nº: </span>{propertyField(property, "unit_number")}</p>}
+              {propertyField(property, "city") && <p><span className="text-muted-foreground">Localidad: </span>{propertyField(property, "city")}</p>}
+              {propertyField(property, "postal_code") && <p><span className="text-muted-foreground">CP: </span>{propertyField(property, "postal_code")}</p>}
+              {propertyField(property, "province") && <p><span className="text-muted-foreground">Provincia: </span>{propertyField(property, "province")}</p>}
+              {propertyField(property, "country") && <p><span className="text-muted-foreground">País: </span>{propertyField(property, "country")}</p>}
               {property.size_m2 && <p><span className="text-muted-foreground">Superficie: </span>{property.size_m2} m²</p>}
               {property.floor && <p><span className="text-muted-foreground">Planta: </span>{property.floor}</p>}
+              {propertyField(property, "orientation") && <p><span className="text-muted-foreground">Exterior/interior: </span>{propertyField(property, "orientation")}</p>}
+              {propertyField(property, "housing_type") && <p><span className="text-muted-foreground">Tipo vivienda: </span>{propertyField(property, "housing_type")}</p>}
+              {propertyField(property, "rental_type") && <p><span className="text-muted-foreground">Alquiler: </span>{propertyField(property, "rental_type")}</p>}
+              {propertyField(property, "owner_name") && <p><span className="text-muted-foreground">Propietario: </span>{propertyField(property, "owner_name")}</p>}
+              {propertyField(property, "cup_number") && <p><span className="text-muted-foreground">Nº CUP: </span>{propertyField(property, "cup_number")}</p>}
+              {propertyField(property, "property_registry_number") && <p><span className="text-muted-foreground">Registro propiedad: </span>{propertyField(property, "property_registry_number")}</p>}
+              {propertyField(property, "cadastral_reference") && <p><span className="text-muted-foreground">Ref. catastral: </span>{propertyField(property, "cadastral_reference")}</p>}
+              {propertyField(property, "viewpoint") && <p><span className="text-muted-foreground">Mirador: </span>{propertyField(property, "viewpoint")}</p>}
+              {propertyField(property, "windows") && <p><span className="text-muted-foreground">Ventanas: </span>{propertyField(property, "windows")}</p>}
               {property.tourist_registration_number && (
                 <p><span className="text-muted-foreground">Registro turístico: </span>{property.tourist_registration_number}</p>
               )}
             </div>
+            {resourceRows.length > 0 || propertyField(property, "other_resources") ? (
+              <div>
+                <p className="mb-2 text-sm font-medium text-muted-foreground">Recursos</p>
+                <div className="grid gap-2 text-sm sm:grid-cols-2">
+                  {resourceRows.map(([label, value]) => (
+                    <a key={label} href={value} target="_blank" rel="noreferrer" className="rounded-md border border-border px-3 py-2 text-primary hover:bg-muted">
+                      {label}
+                    </a>
+                  ))}
+                </div>
+                {propertyField(property, "other_resources") && (
+                  <p className="mt-2 whitespace-pre-wrap text-sm">{propertyField(property, "other_resources")}</p>
+                )}
+              </div>
+            ) : null}
             {/* All images */}
             {property.images.length > 1 && (
               <div>

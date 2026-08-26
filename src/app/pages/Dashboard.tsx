@@ -35,19 +35,11 @@ import { useProperties } from "@/lib/hooks/useProperties";
 import { useTransactions } from "@/lib/hooks/useAccounting";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 
-function StatCard({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string;
-  color: string;
-}) {
+function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm transition-colors hover:border-primary/35">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className={`mt-3 text-3xl font-semibold tracking-tight ${color}`}>{value}</p>
+    <div className="rounded-md border border-border bg-card p-5 shadow-sm transition-colors hover:border-accent">
+      <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+      <p className="mt-3 font-display text-4xl font-medium tracking-tight text-foreground">{value}</p>
     </div>
   );
 }
@@ -151,7 +143,7 @@ export default function DashboardPage() {
       />
 
       {hasError ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700">
+        <div className="rounded-md border border-[var(--danger-border)] bg-[var(--danger-bg)] p-6 text-[var(--danger)]">
           <p className="font-medium">No se pudo cargar el dashboard.</p>
           <Button className="mt-4" onClick={() => {
             void statsQuery.refetch();
@@ -169,20 +161,20 @@ export default function DashboardPage() {
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <Skeleton key={index} className="h-32 rounded-3xl" />
+              <Skeleton key={index} className="h-32 rounded-xl" />
             ))}
           </div>
-          <Skeleton className="h-[360px] rounded-3xl" />
+          <Skeleton className="h-[360px] rounded-xl" />
         </>
       ) : null}
 
       {!loading && stats ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="Total ingresos (mes)" value={formatCurrency(stats.total_revenue_month)} color="text-emerald-600" />
-            <StatCard label="Total ingresos (año)" value={formatCurrency(stats.total_revenue_year)} color="text-sky-600" />
-            <StatCard label="Reservas activas" value={String(stats.active_bookings)} color="text-primary" />
-            <StatCard label="Tasa ocupación %" value={`${stats.occupancy_rate_percent}%`} color="text-primary" />
+            <StatCard label="Total ingresos (mes)" value={formatCurrency(stats.total_revenue_month)} />
+            <StatCard label="Total ingresos (año)" value={formatCurrency(stats.total_revenue_year)} />
+            <StatCard label="Reservas activas" value={String(stats.active_bookings)} />
+            <StatCard label="Tasa ocupación %" value={`${stats.occupancy_rate_percent}%`} />
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[1.3fr_0.9fr]">
@@ -249,7 +241,7 @@ export default function DashboardPage() {
                   </Link>
                   <Link to="/maintenance" className="rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary">
                     <div className="flex items-center gap-3">
-                      <Wrench className="size-5 text-orange-600" />
+                      <Wrench className="size-5 text-[var(--warning)]" />
                       <div>
                         <p className="text-sm text-muted-foreground">Mantenimiento abierto</p>
                         <p className="text-xl font-semibold">{stats.open_maintenance}</p>
@@ -267,7 +259,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="rounded-xl border border-border bg-card p-4">
                     <div className="flex items-center gap-3">
-                      <Euro className="size-5 text-emerald-600" />
+                      <Euro className="size-5 text-[var(--success)]" />
                       <div>
                         <p className="text-sm text-muted-foreground">Check-outs hoy</p>
                         <p className="text-xl font-semibold">{stats.pending_checkouts_today}</p>
@@ -341,11 +333,11 @@ export default function DashboardPage() {
                           <div className="flex items-center gap-2">
                             <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
                               <div
-                                className={`h-full rounded-full ${occupancyPct >= 70 ? "bg-green-500" : occupancyPct >= 40 ? "bg-amber-500" : "bg-rose-400"}`}
+                                className={`h-full rounded-full ${occupancyPct >= 70 ? "bg-[var(--success)]" : occupancyPct >= 40 ? "bg-[var(--warning)]" : "bg-[var(--danger)]"}`}
                                 style={{ width: `${occupancyPct}%` }}
                               />
                             </div>
-                            <span className={`font-medium ${occupancyPct >= 70 ? "text-green-700" : occupancyPct >= 40 ? "text-amber-600" : "text-rose-600"}`}>
+                            <span className={`font-medium ${occupancyPct >= 70 ? "text-[var(--success)]" : occupancyPct >= 40 ? "text-[var(--warning)]" : "text-[var(--danger)]"}`}>
                               {occupancyPct}%
                             </span>
                           </div>
@@ -353,12 +345,12 @@ export default function DashboardPage() {
                         </td>
                         <td className="py-3 pr-4 font-medium">{adr > 0 ? formatCurrency(adr) : "—"}</td>
                         <td className="py-3 pr-4">
-                          <span className="font-semibold text-emerald-700">{formatCurrency(revenueMonth)}</span>
+                          <span className="font-semibold text-[var(--success)]">{formatCurrency(revenueMonth)}</span>
                         </td>
                         <td className="py-3 pr-4 text-muted-foreground">{formatCurrency(revenueYear)}</td>
                         <td className="py-3 pr-4">
                           {pendingAmount > 0 ? (
-                            <Badge variant="outline" className="text-orange-600 border-orange-200 bg-orange-50 text-xs">
+                            <Badge variant="outline" className="text-[var(--warning)] border-[var(--warning-border)] bg-[var(--warning-bg)] text-xs">
                               {formatCurrency(pendingAmount)}
                             </Badge>
                           ) : (

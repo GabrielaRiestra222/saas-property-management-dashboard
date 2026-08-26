@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import api from "@/lib/api";
+import api, { resolveMediaUrl } from "@/lib/api";
 
 interface UploadResult {
   url: string;
@@ -12,41 +12,31 @@ export function useImageUpload() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  const normalizeUrl = (value: string) => {
-    if (/^(https?:|data:|blob:)/.test(value)) {
-      return value;
-    }
-
-    return new URL(value, api.defaults.baseURL?.replace(/\/api\/?$/, "") ?? window.location.origin).toString();
-  };
-
-  const fileToDataUrl = (file: File) => {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const uploadImage = async (file: File, propertyId?: number): Promise<UploadResult | null> => {
+  const uploadFile = async (
+    file: File,
+    options?: { propertyId?: number; bookingId?: number; kind?: "image" | "resource" | "contract" },
+  ): Promise<UploadResult | null> => {
     setUploading(true);
     setProgress(0);
 
-    const endpoints = [
-      "/properties/upload-image/",
-      "/property-images/upload/",
-      "/upload-image/",
-    ];
+    const kind = options?.kind ?? "resource";
+    const endpoints = kind === "image"
+      ? ["/properties/upload-image/", "/property-images/upload/", "/upload-image/"]
+      : ["/uploads/", "/files/upload/", "/upload-file/"];
 
     try {
       for (const endpoint of endpoints) {
         const formData = new FormData();
         formData.append("image", file);
         formData.append("file", file);
-        if (propertyId) {
-          formData.append("property_id", propertyId.toString());
-          formData.append("property", propertyId.toString());
+        formData.append("kind", kind);
+        if (options?.propertyId) {
+          formData.append("property_id", options.propertyId.toString());
+          formData.append("property", options.propertyId.toString());
+        }
+        if (options?.bookingId) {
+          formData.append("booking_id", options.bookingId.toString());
+          formData.append("booking", options.bookingId.toString());
         }
 
         try {
@@ -68,7 +58,7 @@ export function useImageUpload() {
           }
 
           return {
-            url: normalizeUrl(rawUrl),
+            url: resolveMediaUrl(rawUrl),
             filename: data.filename ?? file.name,
             path: data.path ?? rawUrl,
           };
@@ -77,23 +67,17 @@ export function useImageUpload() {
             ? (error as { response?: { status?: number } }).response?.status
             : undefined;
 
-          if (status && ![404, 405].includes(status)) {
+          if (status && ![400, 404, 405, 413, 415].includes(status)) {
             throw error;
           }
         }
       }
 
-      const dataUrl = await fileToDataUrl(file);
-      toast.warning("No se encontró endpoint de subida. La imagen se añadió como vista local.");
-
-      return {
-        url: dataUrl,
-        filename: file.name,
-        path: file.name,
-      };
+      toast.error("No se encontró un endpoint válido para subir el archivo.");
+      return null;
     } catch (error) {
       console.error("Upload failed:", error);
-      toast.error("No se pudo subir la imagen");
+      toast.error("No se pudo subir el archivo");
       return null;
     } finally {
       setUploading(false);
@@ -101,5 +85,8 @@ export function useImageUpload() {
     }
   };
 
-  return { uploadImage, uploading, progress };
+  const uploadImage = async (file: File, propertyId?: number): Promise<UploadResult | null> =>
+    uploadFile(file, { propertyId, kind: "image" });
+
+  return { uploadImage, uploadFile, uploading, progress };
 }

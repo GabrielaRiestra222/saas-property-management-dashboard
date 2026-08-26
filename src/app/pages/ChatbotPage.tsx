@@ -118,13 +118,13 @@ export default function ChatbotPage() {
         subtitle="Resuelve dudas sobre la operativa diaria, reservas, propiedades y más."
       />
 
-      <div className="mx-auto flex h-[calc(100vh-220px)] max-w-2xl flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+      <div className="mx-auto flex h-[calc(100vh-220px)] max-w-2xl flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <ScrollArea className="flex-1 px-4 py-4">
           <div className="space-y-4">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
+                  className={`max-w-[80%] rounded-md px-4 py-3 text-sm ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-foreground"
@@ -140,7 +140,7 @@ export default function ChatbotPage() {
 
             {typing ? (
               <div className="flex justify-start">
-                <div className="rounded-2xl bg-muted px-4 py-3">
+                <div className="rounded-md bg-muted px-4 py-3">
                   <div className="flex items-center gap-1.5">
                     <span className="size-2 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.3s]" />
                     <span className="size-2 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.15s]" />

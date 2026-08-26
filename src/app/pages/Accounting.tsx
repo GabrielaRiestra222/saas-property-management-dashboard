@@ -91,7 +91,7 @@ export default function AccountingPage() {
         </TabsList>
 
         <TabsContent value="transactions" className="space-y-4">
-          <div className="grid gap-3 rounded-3xl border border-border bg-card p-4 shadow-sm md:grid-cols-4">
+          <div className="grid gap-3 rounded-xl border border-border bg-card p-4 shadow-sm md:grid-cols-4">
             <select className="h-10 rounded-md border border-input bg-input-background px-3" value={filters.category} onChange={(event) => setFilters((current) => ({ ...current, category: event.target.value }))}>
               <option value="ALL">Todas</option>
               <option value="INCOME">INCOME</option>
@@ -125,11 +125,11 @@ export default function AccountingPage() {
 
         <TabsContent value="summary" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm"><p className="text-sm text-muted-foreground">Total ingresos</p><p className="mt-3 text-3xl font-semibold text-emerald-600">{formatCurrency(income)}</p></div>
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm"><p className="text-sm text-muted-foreground">Total gastos</p><p className="mt-3 text-3xl font-semibold text-rose-600">{formatCurrency(expense)}</p></div>
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-sm"><p className="text-sm text-muted-foreground">Beneficio neto</p><p className="mt-3 text-3xl font-semibold text-sky-600">{formatCurrency(income - expense)}</p></div>
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm"><p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Total ingresos</p><p className="mt-3 font-display text-3xl font-medium text-[var(--success)]">{formatCurrency(income)}</p></div>
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm"><p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Total gastos</p><p className="mt-3 font-display text-3xl font-medium text-[var(--danger)]">{formatCurrency(expense)}</p></div>
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm"><p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Beneficio neto</p><p className="mt-3 font-display text-3xl font-medium text-foreground">{formatCurrency(income - expense)}</p></div>
           </div>
-          <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-semibold">Ingresos vs gastos</h3>
               <Button variant="outline" onClick={exportCsv}>Export CSV</Button>

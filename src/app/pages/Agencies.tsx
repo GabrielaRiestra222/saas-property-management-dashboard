@@ -164,7 +164,7 @@ export default function AgenciesPage() {
             <FormField control={form.control} name="contract_end" render={({ field }) => (
               <FormItem><FormLabel>Contrato fin</FormLabel><FormControl><Input type="date" {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
             )} />
-            <label className="flex items-center gap-2 rounded-2xl border border-border px-4 py-3 text-sm">
+            <label className="flex items-center gap-2 rounded-md border border-border px-4 py-3 text-sm">
               <input type="checkbox" checked={form.watch("is_active")} onChange={(event) => form.setValue("is_active", event.target.checked)} />
               Agencia activa
             </label>

@@ -189,7 +189,7 @@ export default function NewBookingPage() {
                 key={item}
                 type="button"
                 onClick={() => setStep(item)}
-                className={`rounded-2xl border px-4 py-3 text-left ${step === item ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                className={`rounded-md border px-4 py-3 text-left ${step === item ? "border-primary bg-primary/5" : "border-border bg-card"}`}
               >
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Paso {item}</p>
                 <p className="mt-1 font-medium">
@@ -200,7 +200,7 @@ export default function NewBookingPage() {
           </div>
 
           {step === 1 ? (
-            <div className="grid gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm md:grid-cols-2">
+            <div className="grid gap-4 rounded-xl border border-border bg-card p-5 shadow-sm md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="apartment"
@@ -260,7 +260,7 @@ export default function NewBookingPage() {
                   </FormItem>
                 )}
               />
-              <div className="rounded-2xl bg-muted p-4 md:col-span-2">
+              <div className="rounded-md bg-muted p-4 md:col-span-2">
                 <p className="text-sm text-muted-foreground">Cálculo estimado</p>
                 <p className="mt-2 font-medium">
                   {nights} noches x {formatCurrency(selectedProperty?.price_per_night ?? 0)} + limpieza {formatCurrency(selectedProperty?.cleaning_fee ?? 0)} = {formatCurrency(total)}
@@ -270,7 +270,7 @@ export default function NewBookingPage() {
           ) : null}
 
           {step === 2 ? (
-            <div className="space-y-4 rounded-3xl border border-border bg-card p-5 shadow-sm">
+            <div className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="flex gap-3">
                 <Button type="button" variant={clientMode === "existing" ? "default" : "outline"} onClick={() => setClientMode("existing")}>
                   Cliente existente
@@ -324,7 +324,7 @@ export default function NewBookingPage() {
 
           {step === 3 ? (
             <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+              <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
                 <h3 className="text-lg font-semibold">Resumen</h3>
                 <div className="mt-4 space-y-3 text-sm">
                   <p><span className="text-muted-foreground">Propiedad:</span> {selectedProperty?.title ?? "-"}</p>
@@ -338,7 +338,7 @@ export default function NewBookingPage() {
                   <p><span className="text-muted-foreground">Total:</span> {formatCurrency(total)}</p>
                 </div>
               </div>
-              <div className="space-y-4 rounded-3xl border border-border bg-card p-5 shadow-sm">
+              <div className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-sm">
                 <FormField control={form.control} name="source" render={({ field }) => (
                   <FormItem><FormLabel>Source (opcional)</FormLabel><FormControl><Input {...field} value={field.value ?? ""} /></FormControl><FormMessage /></FormItem>
                 )} />

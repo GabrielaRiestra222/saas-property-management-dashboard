@@ -258,7 +258,7 @@ export default function TeamPage() {
         action={<Button onClick={() => setCreateOpen(true)}>+ Añadir miembro</Button>}
       />
 
-      <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <Input
           placeholder="Buscar por nombre o email"
           value={search}
@@ -270,11 +270,11 @@ export default function TeamPage() {
       {teamQuery.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-48 animate-pulse rounded-3xl border border-border bg-muted" />
+            <div key={i} className="h-48 animate-pulse rounded-xl border border-border bg-muted" />
           ))}
         </div>
       ) : members.length === 0 ? (
-        <div className="rounded-3xl border border-border bg-card p-10 text-center text-muted-foreground shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-10 text-center text-muted-foreground shadow-sm">
           No hay miembros en el equipo todavía.
         </div>
       ) : (
@@ -361,7 +361,7 @@ function MemberCard({
 }) {
   return (
     <div
-      className={`flex flex-col rounded-3xl border border-border bg-card p-5 shadow-sm transition-opacity ${member.is_active ? "opacity-100" : "opacity-60"}`}
+      className={`flex flex-col rounded-xl border border-border bg-card p-5 shadow-sm transition-opacity ${member.is_active ? "opacity-100" : "opacity-60"}`}
     >
       <div className="mb-4 flex items-start gap-3">
         <button type="button" onClick={onView} className="shrink-0">
