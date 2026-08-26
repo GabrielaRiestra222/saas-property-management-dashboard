@@ -267,7 +267,7 @@ export type TransactionPayload = Omit<Transaction, "id" | "receipt_url">;
 export type FAQPayload = Omit<FAQ, "id">;
 export type FAQCategoryPayload = Omit<FAQCategory, "id" | "faqs">;
 
-export type TeamMemberRole = "CLEANING" | "CHECKIN" | "MAINTENANCE" | "ADMIN";
+export type TeamMemberRole = "CLEANER" | "CHECKIN" | "MAINTENANCE" | "ADMIN";
 
 export interface TeamMember {
   id: number;
@@ -276,7 +276,7 @@ export interface TeamMember {
   email: string;
   phone: string;
   role: TeamMemberRole;
-  photo_url: string;
+  photo: string;
   notes: string;
   is_active: boolean;
   created_at: string;

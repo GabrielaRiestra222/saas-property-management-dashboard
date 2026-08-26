@@ -43,7 +43,7 @@ import {
 import type { TeamMember, TeamMemberRole } from "@/types";
 
 const ROLE_CONFIG: Record<TeamMemberRole, { label: string; color: string }> = {
-  CLEANING: { label: "Limpieza", color: "#10b981" },
+  CLEANER: { label: "Limpieza", color: "#10b981" },
   CHECKIN: { label: "Check-in", color: "#3b82f6" },
   MAINTENANCE: { label: "Mantenimiento", color: "#f59e0b" },
   ADMIN: { label: "Admin", color: "#8b5cf6" },
@@ -54,8 +54,8 @@ const memberSchema = z.object({
   last_name: z.string().min(1, "Requerido"),
   email: z.string().email("Email inválido"),
   phone: z.string().default(""),
-  role: z.enum(["CLEANING", "CHECKIN", "MAINTENANCE", "ADMIN"]),
-  photo_url: z.string().default(""),
+  role: z.enum(["CLEANER", "CHECKIN", "MAINTENANCE", "ADMIN"]),
+  photo: z.string().default(""),
   notes: z.string().default(""),
   is_active: z.boolean().default(true),
 });
@@ -89,8 +89,8 @@ function MemberForm({
       last_name: "",
       email: "",
       phone: "",
-      role: "CLEANING",
-      photo_url: "",
+      role: "CLEANER",
+      photo: "",
       notes: "",
       is_active: true,
       ...defaultValues,
@@ -127,7 +127,7 @@ function MemberForm({
               <FormMessage />
             </FormItem>
           )} />
-          <FormField control={form.control} name="photo_url" render={({ field }) => (
+          <FormField control={form.control} name="photo" render={({ field }) => (
             <FormItem><FormLabel>URL de foto</FormLabel><FormControl><Input placeholder="https://..." {...field} /></FormControl><FormMessage /></FormItem>
           )} />
           <FormField control={form.control} name="notes" render={({ field }) => (
@@ -165,8 +165,8 @@ function MemberDetailDialog({ memberId, onClose, onEdit }: { memberId: number; o
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-4">
-        {member.photo_url ? (
-          <img src={member.photo_url} alt={fullName(member.first_name, member.last_name)} className="size-16 rounded-full object-cover" />
+        {member.photo ? (
+          <img src={member.photo} alt={fullName(member.first_name, member.last_name)} className="size-16 rounded-full object-cover" />
         ) : (
           <div className="flex size-16 items-center justify-center rounded-full bg-muted">
             <UserCircle className="size-10 text-muted-foreground" />
@@ -319,7 +319,7 @@ export default function TeamPage() {
               email: memberQuery.data.email,
               phone: memberQuery.data.phone,
               role: memberQuery.data.role,
-              photo_url: memberQuery.data.photo_url,
+              photo: memberQuery.data.photo,
               notes: memberQuery.data.notes,
               is_active: memberQuery.data.is_active,
             }}
@@ -365,8 +365,8 @@ function MemberCard({
     >
       <div className="mb-4 flex items-start gap-3">
         <button type="button" onClick={onView} className="shrink-0">
-          {member.photo_url ? (
-            <img src={member.photo_url} alt={fullName(member.first_name, member.last_name)} className="size-12 rounded-full object-cover" />
+          {member.photo ? (
+            <img src={member.photo} alt={fullName(member.first_name, member.last_name)} className="size-12 rounded-full object-cover" />
           ) : (
             <div className="flex size-12 items-center justify-center rounded-full bg-muted">
               <UserCircle className="size-8 text-muted-foreground" />
