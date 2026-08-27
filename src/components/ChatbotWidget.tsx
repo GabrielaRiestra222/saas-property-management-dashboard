@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { MessageCircle, Minus, SendHorizontal } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { publicApi } from "@/lib/api";
+import api from "@/lib/api";
 
 type Message = {
   id: string;
@@ -15,26 +15,12 @@ type Message = {
   createdAt: Date;
 };
 
-const sessionStorageKey = "chatbot_session_id";
-
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-
-  const sessionId = useMemo(() => {
-    const existing = sessionStorage.getItem(sessionStorageKey);
-
-    if (existing) {
-      return existing;
-    }
-
-    const next = uuidv4();
-    sessionStorage.setItem(sessionStorageKey, next);
-    return next;
-  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,9 +45,10 @@ export default function ChatbotWidget() {
     setLoading(true);
 
     try {
-      const { data } = await publicApi.post<{ reply?: string; message?: string }>("/chatbot/message/", {
-        session_id: sessionId,
+      const history = messages.map((m) => ({ role: m.role, content: m.content }));
+      const { data } = await api.post<{ reply?: string; message?: string }>("/chatbot/admin-message/", {
         message: trimmed,
+        history,
       });
 
       setMessages((current) => [
