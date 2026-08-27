@@ -215,10 +215,12 @@ function mapImages(values: PropertyImage[]): PropertyFormValues["images"] {
 }
 
 function persistedUploadUrl(result: { url: string; path: string }) {
-  if (result.path?.startsWith("properties/")) {
-    return `/media/${result.path}`;
-  }
-
+  // The upload endpoint already returns the correct absolute URL for
+  // whatever storage backend is configured (Cloudflare R2 in production,
+  // local disk in dev) — just use it. This used to rewrite property
+  // uploads to a hardcoded `/media/properties/...` path, which only ever
+  // worked with local FileSystemStorage and broke every image once R2
+  // was wired up (Vercel's filesystem doesn't persist that path at all).
   return result.url;
 }
 
