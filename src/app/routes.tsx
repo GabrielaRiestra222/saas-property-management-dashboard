@@ -5,7 +5,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 import AccountingPage from "./pages/Accounting";
 import AdvancedReportsPage from "./pages/AdvancedReports";
+import AccessManagementPage from "./pages/AccessManagement";
 import AgenciesPage from "./pages/Agencies";
+import ApartmentsBoardPage from "./pages/ApartmentsBoard";
 import AutomationsPage from "./pages/Automations";
 import BookingsPage from "./pages/Bookings";
 import BookingDetailPage from "./pages/BookingDetail";
@@ -43,6 +45,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", Component: DashboardPage },
+      { path: "apartments/board", Component: ApartmentsBoardPage },
       { path: "cms/properties", Component: PropertiesPage },
       { path: "cms/properties/new", Component: PropertyFormPage },
       { path: "cms/properties/:id/edit", Component: PropertyFormPage },
@@ -65,6 +68,7 @@ export const router = createBrowserRouter([
       { path: "owners", Component: OwnersPortalPage },
       { path: "faq/admin", Component: FAQAdminPage },
       { path: "team", Component: TeamPage },
+      { path: "team/access", Component: AccessManagementPage },
       { path: "chatbot", Component: ChatbotPage },
     ],
   },

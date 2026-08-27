@@ -6,7 +6,7 @@ import type { PaginatedResponse, Transaction, TransactionPayload } from "@/types
 
 type AccountingFilters = Record<string, string | number | undefined>;
 
-export function useTransactions(filters?: AccountingFilters) {
+export function useTransactions(filters?: AccountingFilters, options?: { refetchInterval?: number }) {
   return useQuery({
     queryKey: ["accounting", filters],
     queryFn: async () => {
@@ -15,6 +15,7 @@ export function useTransactions(filters?: AccountingFilters) {
       });
       return data;
     },
+    refetchInterval: options?.refetchInterval,
   });
 }
 

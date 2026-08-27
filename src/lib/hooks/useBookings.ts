@@ -1,8 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { toast } from "sonner";
 
 import api from "@/lib/api";
 import type { Booking, BookingPayload, PaginatedResponse } from "@/types";
+
+function getBookingErrorMessage(error: unknown, fallback: string) {
+  if (!axios.isAxiosError(error)) {
+    return fallback;
+  }
+
+  const detail = error.response?.data;
+  if (!detail) {
+    return fallback;
+  }
+
+  if (typeof detail === "string") {
+    return detail;
+  }
+
+  // DRF ValidationError from Booking.clean() (date overlap, check-out before
+  // check-in, ...) comes back as {"__all__": ["message"]} or a field dict.
+  const messages = Object.values(detail).flat();
+  return messages.length ? String(messages[0]) : fallback;
+}
 
 type BookingFilters = {
   status?: string;
@@ -14,7 +35,7 @@ type BookingFilters = {
   check_in_before?: string;
 };
 
-export function useBookings(filters?: BookingFilters) {
+export function useBookings(filters?: BookingFilters, options?: { refetchInterval?: number }) {
   return useQuery({
     queryKey: ["bookings", filters],
     queryFn: async () => {
@@ -23,6 +44,7 @@ export function useBookings(filters?: BookingFilters) {
       });
       return data;
     },
+    refetchInterval: options?.refetchInterval,
   });
 }
 
@@ -50,7 +72,24 @@ export function useCreateBooking() {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Reserva creada");
     },
-    onError: () => toast.error("No se pudo crear la reserva"),
+    onError: (error) => toast.error(getBookingErrorMessage(error, "No se pudo crear la reserva")),
+  });
+}
+
+export function useReturnDeposit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await api.post<Booking>(`/bookings/${id}/return-deposit/`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Fianza marcada como devuelta");
+    },
+    onError: (error) => toast.error(getBookingErrorMessage(error, "No se pudo actualizar la fianza")),
   });
 }
 
@@ -68,6 +107,6 @@ export function useUpdateBooking() {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Reserva actualizada");
     },
-    onError: () => toast.error("No se pudo actualizar la reserva"),
+    onError: (error) => toast.error(getBookingErrorMessage(error, "No se pudo actualizar la reserva")),
   });
 }

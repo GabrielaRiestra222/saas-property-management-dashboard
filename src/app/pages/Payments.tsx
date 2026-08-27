@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
 import DataTable from "@/components/ui/DataTable";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -12,15 +11,14 @@ import type { BookingPayment } from "@/types";
 
 export default function PaymentsPage() {
   const [onlyPending, setOnlyPending] = useState(false);
-  const paymentsQuery = usePayments();
+  const [page, setPage] = useState(1);
+
+  const paymentsQuery = usePayments(undefined, { page, status: onlyPending ? "PENDING" : undefined });
   const bookingsQuery = useBookings();
   const markPaid = useMarkPaid();
 
   const bookings = bookingsQuery.data?.results ?? [];
-  const payments = useMemo(() => {
-    const rows = paymentsQuery.data?.results ?? [];
-    return onlyPending ? rows.filter((payment) => payment.status === "PENDING") : rows;
-  }, [onlyPending, paymentsQuery.data?.results]);
+  const payments = paymentsQuery.data?.results ?? [];
 
   return (
     <div className="space-y-6">
@@ -29,7 +27,14 @@ export default function PaymentsPage() {
         subtitle="Control de vencimientos, cobros y seguimiento del saldo pendiente."
         action={
           <label className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm">
-            <input type="checkbox" checked={onlyPending} onChange={(event) => setOnlyPending(event.target.checked)} />
+            <input
+              type="checkbox"
+              checked={onlyPending}
+              onChange={(event) => {
+                setOnlyPending(event.target.checked);
+                setPage(1);
+              }}
+            />
             Solo pendientes
           </label>
         }
@@ -39,6 +44,10 @@ export default function PaymentsPage() {
         loading={paymentsQuery.isLoading}
         rows={payments}
         emptyMessage="No hay pagos para mostrar."
+        onPreviousPage={() => setPage((current) => Math.max(1, current - 1))}
+        onNextPage={() => setPage((current) => current + 1)}
+        hasPreviousPage={Boolean(paymentsQuery.data?.previous)}
+        hasNextPage={Boolean(paymentsQuery.data?.next)}
         columns={[
           {
             key: "booking",
@@ -58,8 +67,13 @@ export default function PaymentsPage() {
             header: "Propiedad",
             render: (payment) => bookings.find((item) => item.id === payment.booking)?.apartment_title ?? "-",
           },
-          { key: "due", header: "Vence", render: (payment) => payment.due_date },
-          { key: "amount", header: "Importe", render: (payment) => formatCurrency(payment.amount_due) },
+          { key: "due", header: "Vence", render: (payment) => payment.due_date, sortValue: (payment) => payment.due_date },
+          {
+            key: "amount",
+            header: "Importe",
+            render: (payment) => formatCurrency(payment.amount_due),
+            sortValue: (payment) => Number(payment.amount_due),
+          },
           { key: "paid", header: "Pagado", render: (payment) => formatCurrency(payment.amount_paid) },
           {
             key: "pending",

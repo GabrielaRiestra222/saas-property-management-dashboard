@@ -119,7 +119,7 @@ export default function ChatbotPage() {
       />
 
       <div className="mx-auto flex h-[calc(100vh-220px)] max-w-2xl flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        <ScrollArea className="flex-1 px-4 py-4">
+        <ScrollArea className="min-h-0 flex-1 px-4 py-4">
           <div className="space-y-4">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>

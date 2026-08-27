@@ -104,6 +104,21 @@ export default function NewBookingPage() {
     return nights * Number(selectedProperty.price_per_night) + Number(selectedProperty.cleaning_fee);
   }, [selectedProperty, nights]);
 
+  const overlappingBooking = useMemo(() => {
+    if (!watchedCheckIn || !watchedCheckOut) return null;
+    const checkIn = new Date(watchedCheckIn);
+    const checkOut = new Date(watchedCheckOut);
+    if (Number.isNaN(checkIn.getTime()) || Number.isNaN(checkOut.getTime()) || checkOut <= checkIn) return null;
+
+    const existing = adjBookingsQuery.data?.results ?? [];
+    return existing.find(
+      (booking) =>
+        booking.status !== "CANCELLED" &&
+        new Date(booking.check_in) < checkOut &&
+        new Date(booking.check_out) > checkIn,
+    ) ?? null;
+  }, [adjBookingsQuery.data, watchedCheckIn, watchedCheckOut]);
+
   async function submitBooking(values: BookingWizardValues) {
     let clientId = Number(values.client || 0);
 
@@ -266,6 +281,12 @@ export default function NewBookingPage() {
                   {nights} noches x {formatCurrency(selectedProperty?.price_per_night ?? 0)} + limpieza {formatCurrency(selectedProperty?.cleaning_fee ?? 0)} = {formatCurrency(total)}
                 </p>
               </div>
+              {overlappingBooking ? (
+                <div className="rounded-md border border-[var(--danger-border)] bg-[var(--danger-bg)] p-4 text-sm text-[var(--danger)] md:col-span-2">
+                  Ese apartamento ya tiene una reserva de {overlappingBooking.client_name || "otro cliente"} del{" "}
+                  {overlappingBooking.check_in} al {overlappingBooking.check_out}. Elige otras fechas.
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -377,7 +398,7 @@ export default function NewBookingPage() {
             {step < 3 ? (
               <Button type="button" onClick={() => setStep((current) => current + 1)}>Continuar</Button>
             ) : (
-              <Button disabled={createBooking.isPending || createClient.isPending || createCleaning.isPending}>
+              <Button disabled={createBooking.isPending || createClient.isPending || createCleaning.isPending || Boolean(overlappingBooking)}>
                 {createBooking.isPending || createClient.isPending || createCleaning.isPending ? "Creando..." : "Crear reserva"}
               </Button>
             )}

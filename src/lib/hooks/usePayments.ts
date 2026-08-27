@@ -5,15 +5,20 @@ import { toast } from "sonner";
 import api from "@/lib/api";
 import type { BookingPayment, PaginatedResponse, PaymentPayload } from "@/types";
 
-export function usePayments(bookingId?: number) {
+export function usePayments(
+  bookingId?: number,
+  options?: { refetchInterval?: number; page?: number; status?: string },
+) {
   return useQuery({
-    queryKey: ["payments", bookingId],
+    queryKey: ["payments", bookingId, options?.page, options?.status],
     queryFn: async () => {
       const { data } = await api.get<PaginatedResponse<BookingPayment>>("/payments/", {
-        params: bookingId ? { booking: bookingId } : undefined,
+        params: { booking: bookingId || undefined, page: options?.page, status: options?.status },
       });
       return data;
     },
+    placeholderData: (previous) => previous,
+    refetchInterval: options?.refetchInterval,
   });
 }
 

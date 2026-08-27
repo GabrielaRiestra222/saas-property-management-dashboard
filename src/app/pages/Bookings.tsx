@@ -137,8 +137,8 @@ export default function BookingsPage() {
               </Link>
             ),
           },
-          { key: "checkin", header: "Check-in", render: (booking) => formatDate(booking.check_in) },
-          { key: "checkout", header: "Check-out", render: (booking) => formatDate(booking.check_out) },
+          { key: "checkin", header: "Check-in", render: (booking) => formatDate(booking.check_in), sortValue: (booking) => booking.check_in },
+          { key: "checkout", header: "Check-out", render: (booking) => formatDate(booking.check_out), sortValue: (booking) => booking.check_out },
           {
             key: "nights",
             header: "Noches",
@@ -151,7 +151,12 @@ export default function BookingsPage() {
               <span className="font-medium">{formatCurrency(getPricePerNight(booking))}</span>
             ),
           },
-          { key: "total", header: "Total", render: (booking) => <span className="font-semibold">{formatCurrency(booking.total_price)}</span> },
+          {
+            key: "total",
+            header: "Total",
+            render: (booking) => <span className="font-semibold">{formatCurrency(booking.total_price)}</span>,
+            sortValue: (booking) => Number(booking.total_price),
+          },
           {
             key: "paid",
             header: "Pagado",
@@ -166,6 +171,7 @@ export default function BookingsPage() {
               const pending = Number(booking.remaining_balance);
               return <span className={pending > 0 ? "font-medium text-[var(--warning)]" : "text-muted-foreground"}>{formatCurrency(pending)}</span>;
             },
+            sortValue: (booking) => Number(booking.remaining_balance),
           },
           {
             key: "pendingPayments",

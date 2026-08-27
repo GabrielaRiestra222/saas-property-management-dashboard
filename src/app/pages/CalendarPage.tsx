@@ -577,14 +577,23 @@ export default function CalendarPage() {
 
       <FormModal title="Crear bloqueo" isOpen={open} onClose={() => setOpen(false)}>
         <div className="grid gap-4">
-          <Select value={blockValues.property} onValueChange={(value) => setBlockValues((current) => ({ ...current, property: value }))}>
-            <SelectTrigger><SelectValue placeholder="Propiedad" /></SelectTrigger>
-            <SelectContent>
-              {(propertiesQuery.data?.results ?? []).map((item) => (
-                <SelectItem key={item.id} value={String(item.id)}>{item.title}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div>
+            <Select value={blockValues.property} onValueChange={(value) => setBlockValues((current) => ({ ...current, property: value }))}>
+              <SelectTrigger className={!blockValues.property ? "border-[var(--danger-border)]" : undefined}>
+                <SelectValue placeholder="Propiedad" />
+              </SelectTrigger>
+              <SelectContent>
+                {(propertiesQuery.data?.results ?? []).map((item) => (
+                  <SelectItem key={item.id} value={String(item.id)}>{item.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!blockValues.property ? (
+              <p className="mt-1 text-xs text-[var(--danger)]">
+                Elige a qué apartamento aplica el bloqueo — al abrir desde la columna de fecha no queda ninguno preseleccionado.
+              </p>
+            ) : null}
+          </div>
           <Select value={blockValues.reason} onValueChange={(value) => setBlockValues((current) => ({ ...current, reason: value as CalendarBlock["reason"] }))}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -594,24 +603,50 @@ export default function CalendarPage() {
               <SelectItem value="CLEANING">CLEANING</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="date" value={blockValues.start_date} onChange={(event) => setBlockValues((current) => ({ ...current, start_date: event.target.value }))} />
-          <Input type="date" value={blockValues.end_date} onChange={(event) => setBlockValues((current) => ({ ...current, end_date: event.target.value }))} />
+          <Input
+            type="date"
+            value={blockValues.start_date}
+            onChange={(event) => setBlockValues((current) => ({
+              ...current,
+              start_date: event.target.value,
+              // Keep the range valid if the user drags start past the current end.
+              end_date: current.end_date && current.end_date < event.target.value ? event.target.value : current.end_date,
+            }))}
+          />
+          <Input
+            type="date"
+            min={blockValues.start_date || undefined}
+            value={blockValues.end_date}
+            onChange={(event) => setBlockValues((current) => ({ ...current, end_date: event.target.value }))}
+          />
           <Input placeholder="Notas" value={blockValues.notes} onChange={(event) => setBlockValues((current) => ({ ...current, notes: event.target.value }))} />
           <div className="flex justify-end">
             <Button
+              disabled={
+                !blockValues.property ||
+                !blockValues.start_date ||
+                !blockValues.end_date ||
+                blockValues.end_date < blockValues.start_date ||
+                createBlock.isPending
+              }
               onClick={async () => {
-                await createBlock.mutateAsync({
-                  property: Number(blockValues.property),
-                  reason: blockValues.reason,
-                  start_date: blockValues.start_date,
-                  end_date: blockValues.end_date,
-                  booking: null,
-                  notes: blockValues.notes,
-                });
-                setOpen(false);
+                try {
+                  await createBlock.mutateAsync({
+                    property: Number(blockValues.property),
+                    reason: blockValues.reason,
+                    start_date: blockValues.start_date,
+                    end_date: blockValues.end_date,
+                    booking: null,
+                    notes: blockValues.notes,
+                  });
+                  setOpen(false);
+                } catch {
+                  // useCreateCalendarBlock already surfaces a toast — keep the
+                  // modal open so the user can fix whatever field was wrong.
+                }
               }}
             >
-              Guardar bloqueo
+              {createBlock.isPending ? "Guardando..." : "Guardar bloqueo"}
             </Button>
           </div>
         </div>

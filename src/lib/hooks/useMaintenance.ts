@@ -21,7 +21,7 @@ function normalizeMaintenanceResponse(data: MaintenanceResponse): PaginatedRespo
   return data;
 }
 
-export function useMaintenanceRequests(filters?: MaintenanceFilters) {
+export function useMaintenanceRequests(filters?: MaintenanceFilters, options?: { refetchInterval?: number }) {
   return useQuery({
     queryKey: ["maintenance", filters],
     queryFn: async () => {
@@ -30,6 +30,7 @@ export function useMaintenanceRequests(filters?: MaintenanceFilters) {
       });
       return normalizeMaintenanceResponse(data);
     },
+    refetchInterval: options?.refetchInterval,
   });
 }
 

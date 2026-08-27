@@ -7,14 +7,14 @@ import {
   format,
   parseISO,
   startOfMonth,
+  subDays,
   subMonths,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import {
+  AlertTriangle,
   ArrowRight,
-  CalendarDays,
   CreditCard,
-  Euro,
   LoaderCircle,
   Sparkles,
   TrendingUp,
@@ -26,7 +26,8 @@ import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import PageHeader from "@/components/ui/PageHeader";
-import { useBookings } from "@/lib/hooks/useBookings";
+import TodayOps from "@/app/components/TodayOps";
+import { useBookings, useReturnDeposit } from "@/lib/hooks/useBookings";
 import { useCleaningTasks } from "@/lib/hooks/useCleaning";
 import { useDashboardStats } from "@/lib/hooks/useDashboard";
 import { useMaintenanceRequests } from "@/lib/hooks/useMaintenance";
@@ -35,26 +36,64 @@ import { useProperties } from "@/lib/hooks/useProperties";
 import { useTransactions } from "@/lib/hooks/useAccounting";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function DepositOverdueRow({ booking }: { booking: import("@/types").Booking }) {
+  const returnDeposit = useReturnDeposit();
+
   return (
-    <div className="rounded-md border border-border bg-card p-5 shadow-sm transition-colors hover:border-accent">
-      <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
-      <p className="mt-3 font-display text-4xl font-medium tracking-tight text-foreground">{value}</p>
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--warning-border)] bg-card px-3 py-2">
+      <span>
+        <Link to={`/bookings/${booking.id}`} className="font-medium hover:underline">
+          {booking.apartment_title ?? `Propiedad #${booking.apartment}`}
+        </Link>
+        <span className="text-muted-foreground"> · {booking.client_name || "Huésped"} · salió el {formatDate(booking.check_out)}</span>
+      </span>
+      <div className="flex items-center gap-3">
+        <span className="font-semibold text-[var(--warning)]">{formatCurrency(booking.deposit_amount)}</span>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => returnDeposit.mutate(booking.id)}
+          disabled={returnDeposit.isPending && returnDeposit.variables === booking.id}
+        >
+          {returnDeposit.isPending && returnDeposit.variables === booking.id ? "..." : "Devolver"}
+        </Button>
+      </div>
     </div>
   );
 }
 
+function SectionError({ onRetry, message = "No se pudo cargar esta sección." }: { onRetry: () => void; message?: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-[var(--danger-border)] bg-[var(--danger-bg)] px-3 py-2 text-xs text-[var(--danger)]">
+      <span>{message}</span>
+      <button type="button" onClick={onRetry} className="shrink-0 font-medium underline underline-offset-2">
+        Reintentar
+      </button>
+    </div>
+  );
+}
+
+const LIVE_REFRESH_MS = 60_000;
+
 export default function DashboardPage() {
-  const statsQuery = useDashboardStats();
-  const bookingsQuery = useBookings();
-  const cleaningQuery = useCleaningTasks();
-  const maintenanceQuery = useMaintenanceRequests();
+  const statsQuery = useDashboardStats({ refetchInterval: LIVE_REFRESH_MS });
+  const bookingsQuery = useBookings(undefined, { refetchInterval: LIVE_REFRESH_MS });
+  const cleaningQuery = useCleaningTasks(undefined, { refetchInterval: LIVE_REFRESH_MS });
+  const maintenanceQuery = useMaintenanceRequests(undefined, { refetchInterval: LIVE_REFRESH_MS });
   const transactionsQuery = useTransactions();
   const propertiesQuery = useProperties();
-  const paymentsQuery = usePayments();
+  const paymentsQuery = usePayments(undefined, { refetchInterval: LIVE_REFRESH_MS });
 
   const loading = statsQuery.isLoading || bookingsQuery.isLoading || cleaningQuery.isLoading || maintenanceQuery.isLoading;
-  const hasError = statsQuery.isError || bookingsQuery.isError || cleaningQuery.isError || maintenanceQuery.isError;
+  // Stats backs almost every widget on this page — without it there's nothing
+  // meaningful to render. The other queries degrade gracefully (empty list +
+  // an inline retry) so one flaky endpoint doesn't blank the whole dashboard.
+  const statsFailed = statsQuery.isError;
+  const bookingsFailed = bookingsQuery.isError;
+  const cleaningFailed = cleaningQuery.isError;
+  const maintenanceFailed = maintenanceQuery.isError;
+  const transactionsFailed = transactionsQuery.isError;
+  const propertiesFailed = propertiesQuery.isError;
 
   const bookings = bookingsQuery.data?.results ?? [];
   const cleaning = cleaningQuery.data?.results ?? [];
@@ -67,6 +106,22 @@ export default function DashboardPage() {
   const today = format(new Date(), "yyyy-MM-dd");
   const checkinsToday = bookings.filter((booking) => booking.check_in === today);
   const checkoutsToday = bookings.filter((booking) => booking.check_out === today);
+
+  const newBookingsCutoff = subDays(new Date(), 7);
+  const newBookings = bookings
+    .filter((booking) => booking.created_at && new Date(booking.created_at) >= newBookingsCutoff)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const pendingDeposits = bookings.filter(
+    (booking) => Number(booking.deposit_amount) > 0 && !booking.deposit_returned,
+  );
+  const depositsPendingTotal = pendingDeposits.reduce((sum, b) => sum + Number(b.deposit_amount), 0);
+  // Overdue: already checked out but the deposit still hasn't been returned —
+  // today's check-outs already surface the "Devolver" action inline, this list
+  // is for the ones that slipped through.
+  const depositsOverdue = pendingDeposits
+    .filter((booking) => booking.check_out < today)
+    .sort((a, b) => a.check_out.localeCompare(b.check_out));
 
   // Per-property occupancy and revenue for the current month
   const monthStart = startOfMonth(new Date());
@@ -142,16 +197,10 @@ export default function DashboardPage() {
         subtitle="Visión general de ingresos, ocupación y tareas operativas del día."
       />
 
-      {hasError ? (
+      {statsFailed ? (
         <div className="rounded-md border border-[var(--danger-border)] bg-[var(--danger-bg)] p-6 text-[var(--danger)]">
           <p className="font-medium">No se pudo cargar el dashboard.</p>
-          <Button className="mt-4" onClick={() => {
-            void statsQuery.refetch();
-            void bookingsQuery.refetch();
-            void cleaningQuery.refetch();
-            void maintenanceQuery.refetch();
-            void transactionsQuery.refetch();
-          }}>
+          <Button className="mt-4" onClick={() => void statsQuery.refetch()}>
             Reintentar
           </Button>
         </div>
@@ -168,14 +217,59 @@ export default function DashboardPage() {
         </>
       ) : null}
 
-      {!loading && stats ? (
+      {!loading && !statsFailed && stats ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="Total ingresos (mes)" value={formatCurrency(stats.total_revenue_month)} />
-            <StatCard label="Total ingresos (año)" value={formatCurrency(stats.total_revenue_year)} />
-            <StatCard label="Reservas activas" value={String(stats.active_bookings)} />
-            <StatCard label="Tasa ocupación %" value={`${stats.occupancy_rate_percent}%`} />
+          {bookingsFailed ? (
+            <SectionError message="No se pudieron cargar las reservas." onRetry={() => void bookingsQuery.refetch()} />
+          ) : (
+            <TodayOps
+              checkins={checkinsToday}
+              checkouts={checkoutsToday}
+              newBookings={newBookings}
+              monthTotal={stats.total_revenue_month}
+              depositsPendingTotal={depositsPendingTotal}
+              depositsPendingCount={pendingDeposits.length}
+            />
+          )}
+
+          {/* Quick links — the stuff you'd otherwise dig for in the sidebar */}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Link to="/cleaning" className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-accent hover:bg-secondary">
+              <Sparkles className="size-5 text-primary" strokeWidth={1.75} />
+              <div>
+                <p className="text-sm text-muted-foreground">Limpiezas pendientes</p>
+                <p className="text-xl font-semibold">{stats.pending_cleanings}</p>
+              </div>
+            </Link>
+            <Link to="/maintenance" className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-accent hover:bg-secondary">
+              <Wrench className="size-5 text-[var(--warning)]" strokeWidth={1.75} />
+              <div>
+                <p className="text-sm text-muted-foreground">Mantenimiento abierto</p>
+                <p className="text-xl font-semibold">{stats.open_maintenance}</p>
+              </div>
+            </Link>
+            <Link to="/payments" className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-accent hover:bg-secondary">
+              <CreditCard className="size-5 text-primary" strokeWidth={1.75} />
+              <div>
+                <p className="text-sm text-muted-foreground">Pagos pendientes</p>
+                <p className="text-xl font-semibold">{stats.pending_payments}</p>
+              </div>
+            </Link>
           </div>
+
+          {depositsOverdue.length > 0 ? (
+            <div className="rounded-xl border border-[var(--warning-border)] bg-[var(--warning-bg)] p-5">
+              <div className="mb-3 flex items-center gap-2 text-[var(--warning)]">
+                <AlertTriangle className="size-4" />
+                <h3 className="font-semibold tracking-tight">Fianzas sin devolver de estancias ya finalizadas</h3>
+              </div>
+              <div className="space-y-2 text-sm">
+                {depositsOverdue.map((booking) => (
+                  <DepositOverdueRow key={booking.id} booking={booking} />
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="grid gap-4 xl:grid-cols-[1.3fr_0.9fr]">
             <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -187,99 +281,59 @@ export default function DashboardPage() {
                 {transactionsQuery.isFetching ? <LoaderCircle className="size-4 animate-spin text-muted-foreground" /> : null}
               </div>
 
-              <div className="h-[320px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid stroke="rgba(23,28,27,0.08)" strokeDasharray="3 3" vertical={false} />
-                    <XAxis axisLine={false} dataKey="month" tickLine={false} />
-                    <YAxis axisLine={false} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{
-                        background: "rgba(255,253,248,0.96)",
-                        border: "1px solid rgba(220,229,239,0.95)",
-                        borderRadius: 12,
-                        boxShadow: "0 12px 28px rgba(23,32,51,0.10)",
-                      }}
-                      formatter={(value: number) => formatCurrency(value)}
-                    />
-                    <Bar dataKey="revenue" fill="var(--primary)" radius={[12, 12, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {transactionsFailed ? (
+                <SectionError message="No se pudieron cargar los ingresos." onRetry={() => void transactionsQuery.refetch()} />
+              ) : (
+                <div className="h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <CartesianGrid stroke="rgba(23,28,27,0.08)" strokeDasharray="3 3" vertical={false} />
+                      <XAxis axisLine={false} dataKey="month" tickLine={false} />
+                      <YAxis axisLine={false} tickLine={false} />
+                      <Tooltip
+                        contentStyle={{
+                          background: "rgba(255,253,248,0.96)",
+                          border: "1px solid rgba(220,229,239,0.95)",
+                          borderRadius: 12,
+                          boxShadow: "0 12px 28px rgba(23,32,51,0.10)",
+                        }}
+                        formatter={(value: number) => formatCurrency(value)}
+                      />
+                      <Bar dataKey="revenue" fill="var(--primary)" radius={[12, 12, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
               <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-secondary p-3 text-primary">
-                    <CalendarDays className="size-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Check-ins hoy</p>
-                    <p className="text-2xl font-semibold">{stats.pending_checkins_today}</p>
-                  </div>
-                </div>
-                <div className="mt-4 space-y-2 text-sm">
-                  {checkinsToday.length ? checkinsToday.map((booking) => (
-                    <div key={booking.id} className="rounded-lg border border-border bg-muted/70 px-3 py-2">
-                      {booking.apartment_title ?? `Propiedad #${booking.apartment}`}
-                    </div>
-                  )) : <p className="text-muted-foreground">Sin check-ins pendientes hoy.</p>}
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Link to="/cleaning" className="rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary">
-                    <div className="flex items-center gap-3">
-                      <Sparkles className="size-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Limpiezas pendientes</p>
-                        <p className="text-xl font-semibold">{stats.pending_cleanings}</p>
-                      </div>
-                    </div>
-                  </Link>
-                  <Link to="/maintenance" className="rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary">
-                    <div className="flex items-center gap-3">
-                      <Wrench className="size-5 text-[var(--warning)]" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Mantenimiento abierto</p>
-                        <p className="text-xl font-semibold">{stats.open_maintenance}</p>
-                      </div>
-                    </div>
-                  </Link>
-                  <div className="rounded-xl border border-border bg-card p-4">
-                    <div className="flex items-center gap-3">
-                      <CreditCard className="size-5 text-primary" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Pagos pendientes</p>
-                        <p className="text-xl font-semibold">{stats.pending_payments}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-border bg-card p-4">
-                    <div className="flex items-center gap-3">
-                      <Euro className="size-5 text-[var(--success)]" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Check-outs hoy</p>
-                        <p className="text-xl font-semibold">{stats.pending_checkouts_today}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="font-semibold tracking-tight">Actividad operativa</h3>
+                  <h3 className="font-semibold tracking-tight">Otros indicadores</h3>
                   <ArrowRight className="size-4 text-muted-foreground" />
                 </div>
                 <div className="space-y-3 text-sm">
-                  {checkoutsToday.slice(0, 2).map((booking) => (
-                    <div key={`checkout-${booking.id}`} className="rounded-lg border border-border bg-muted/70 px-3 py-2">
-                      Check-out: {booking.apartment_title ?? `Propiedad #${booking.apartment}`} el {formatDate(booking.check_out)}
-                    </div>
-                  ))}
+                  <div className="flex items-center justify-between rounded-lg border border-border bg-muted/70 px-3 py-2">
+                    <span className="text-muted-foreground">Ingresos (año)</span>
+                    <span className="font-semibold">{formatCurrency(stats.total_revenue_year)}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-border bg-muted/70 px-3 py-2">
+                    <span className="text-muted-foreground">Reservas activas</span>
+                    <span className="font-semibold">{stats.active_bookings}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-border bg-muted/70 px-3 py-2">
+                    <span className="text-muted-foreground">Tasa de ocupación</span>
+                    <span className="font-semibold">{stats.occupancy_rate_percent}%</span>
+                  </div>
+                  {(cleaningFailed || maintenanceFailed) ? (
+                    <SectionError
+                      message="Parte de la actividad operativa no se pudo cargar."
+                      onRetry={() => {
+                        void cleaningQuery.refetch();
+                        void maintenanceQuery.refetch();
+                      }}
+                    />
+                  ) : null}
                   {cleaning.slice(0, 2).map((task) => (
                     <div key={`cleaning-${task.id}`} className="rounded-lg border border-border bg-muted/70 px-3 py-2">
                       Limpieza {task.property_title ?? `#${task.property}`} para {formatDate(task.scheduled_date)}
@@ -290,15 +344,17 @@ export default function DashboardPage() {
                       {item.title} en {item.property_title ?? `#${item.property}`}
                     </div>
                   ))}
-                  {!checkoutsToday.length && !cleaning.length && !maintenance.length ? (
-                    <p className="text-muted-foreground">No hay actividad operativa destacada.</p>
-                  ) : null}
                 </div>
               </div>
             </div>
           </div>
           {/* Rentabilidad por propiedad */}
-          {propertyStats.length > 0 ? (
+          {propertiesFailed ? (
+            <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+              <SectionError message="No se pudieron cargar las propiedades." onRetry={() => void propertiesQuery.refetch()} />
+            </div>
+          ) : null}
+          {!propertiesFailed && propertyStats.length > 0 ? (
             <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2">
                 <TrendingUp className="size-4 text-primary" />

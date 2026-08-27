@@ -36,6 +36,7 @@ export default function CleaningPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [open, setOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Array<string | number>>([]);
   const [newTask, setNewTask] = useState({
     property: "",
     scheduled_date: "",
@@ -106,10 +107,27 @@ export default function CleaningPage() {
           loading={cleaningQuery.isLoading}
           rows={tasks}
           emptyMessage="No hay tareas de limpieza."
+          getRowId={(task) => task.id}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          bulkActions={
+            <Button
+              size="sm"
+              disabled={updateCleaningStatus.isPending}
+              onClick={async () => {
+                await Promise.all(
+                  selectedIds.map((id) => updateCleaningStatus.mutateAsync({ id: Number(id), status: "DONE" })),
+                );
+                setSelectedIds([]);
+              }}
+            >
+              Marcar como hechas
+            </Button>
+          }
           columns={[
-            { key: "property", header: "Propiedad", render: (task) => task.property_title ?? `#${task.property}` },
+            { key: "property", header: "Propiedad", render: (task) => task.property_title ?? `#${task.property}`, sortValue: (task) => task.property_title ?? "" },
             { key: "booking", header: "Reserva ref", render: (task) => (task.booking ? `#${task.booking}` : "-") },
-            { key: "date", header: "Fecha", render: (task) => task.scheduled_date },
+            { key: "date", header: "Fecha", render: (task) => task.scheduled_date, sortValue: (task) => task.scheduled_date },
             { key: "assigned", header: "Asignado", render: (task) => task.assigned_to || "-" },
             { key: "status", header: "Estado", render: (task) => <StatusBadge status={task.status} type="cleaning" /> },
             { key: "fee", header: "Tarifa", render: (task) => task.fee },

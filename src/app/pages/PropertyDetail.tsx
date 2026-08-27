@@ -174,6 +174,7 @@ export default function PropertyDetailPage() {
       <PageHeader
         title={property.title}
         subtitle={property.location}
+        breadcrumb={[{ label: "Apartamentos", to: "/cms/properties" }, { label: property.title }]}
         action={
           <div className="flex gap-2">
             <Button variant="outline" asChild>

@@ -135,6 +135,10 @@ export default function ClientDetailPage() {
       <PageHeader
         title={clientQuery.data ? fullName(clientQuery.data.first_name, clientQuery.data.last_name) : "Cliente"}
         subtitle="Ficha editable del huésped y su historial de reservas."
+        breadcrumb={[
+          { label: "Clientes", to: "/clients" },
+          { label: clientQuery.data ? fullName(clientQuery.data.first_name, clientQuery.data.last_name) : "Cliente" },
+        ]}
       />
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">

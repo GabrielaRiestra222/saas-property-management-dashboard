@@ -235,10 +235,11 @@ function EditModal({ clientId, onClose }: { clientId: number; onClose: () => voi
 
 export default function ClientsPage() {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [detailId, setDetailId] = useState<number | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
 
-  const clientsQuery = useClients(search);
+  const clientsQuery = useClients(search, page);
   const bookingsQuery = useBookings();
   const bookings = bookingsQuery.data?.results ?? [];
 
@@ -247,13 +248,24 @@ export default function ClientsPage() {
       <PageHeader title="Clientes" subtitle="Directorio de huéspedes con acceso rápido al historial de reservas." />
 
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-        <Input placeholder="Buscar por nombre o email" value={search} onChange={(event) => setSearch(event.target.value)} />
+        <Input
+          placeholder="Buscar por nombre o email"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setPage(1);
+          }}
+        />
       </div>
 
       <DataTable<Client>
         loading={clientsQuery.isLoading}
         rows={clientsQuery.data?.results ?? []}
         emptyMessage="No se encontraron clientes."
+        onPreviousPage={() => setPage((current) => Math.max(1, current - 1))}
+        onNextPage={() => setPage((current) => current + 1)}
+        hasPreviousPage={Boolean(clientsQuery.data?.previous)}
+        hasNextPage={Boolean(clientsQuery.data?.next)}
         columns={[
           {
             key: "name",
@@ -263,6 +275,7 @@ export default function ClientsPage() {
                 {fullName(client.first_name, client.last_name)}
               </button>
             ),
+            sortValue: (client) => fullName(client.first_name, client.last_name).toLowerCase(),
           },
           { key: "email", header: "Email", render: (client) => client.email },
           { key: "phone", header: "Teléfono", render: (client) => client.phone || "-" },
@@ -271,6 +284,7 @@ export default function ClientsPage() {
             key: "bookings",
             header: "# Reservas",
             render: (client) => String(bookings.filter((booking) => booking.client === client.id).length),
+            sortValue: (client) => bookings.filter((booking) => booking.client === client.id).length,
           },
           {
             key: "actions",

@@ -76,6 +76,8 @@ export interface Property {
   amenities: number[];
   amenity_details: Amenity[];
   organization: number;
+  owner: number | null;
+  owner_account_name?: string | null;
 }
 
 export interface Client {
@@ -105,14 +107,20 @@ export interface Booking {
   id: number;
   apartment: number;
   apartment_title?: string;
+  apartment_image?: string | null;
   client: number;
   client_name?: string;
+  client_email?: string;
+  client_phone?: string;
   check_in: string;
   check_out: string;
   total_price: string;
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
   num_guests: number;
   notes: string;
+  deposit_amount: string;
+  deposit_returned: boolean;
+  deposit_returned_at: string | null;
   contract_status?: string;
   contract_url?: string;
   invoice_tax_base?: string;
@@ -283,3 +291,18 @@ export interface TeamMember {
 }
 
 export type TeamMemberPayload = Omit<TeamMember, "id" | "created_at">;
+
+export type UserRole = "ADMIN" | "MANAGER" | "OWNER";
+
+export interface UserAccount {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: UserRole;
+  organization: number | null;
+  is_active: boolean;
+}
+
+export type UserAccountPayload = Partial<Omit<UserAccount, "id">> & { password?: string };

@@ -7,7 +7,7 @@ import type { CleaningTask, CleaningTaskPayload, PaginatedResponse } from "@/typ
 
 type CleaningFilters = Record<string, string | number | undefined>;
 
-export function useCleaningTasks(filters?: CleaningFilters) {
+export function useCleaningTasks(filters?: CleaningFilters, options?: { refetchInterval?: number }) {
   return useQuery({
     queryKey: ["cleaning", filters],
     queryFn: async () => {
@@ -16,6 +16,7 @@ export function useCleaningTasks(filters?: CleaningFilters) {
       });
       return data;
     },
+    refetchInterval: options?.refetchInterval,
   });
 }
 

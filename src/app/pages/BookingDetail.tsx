@@ -237,6 +237,7 @@ export default function BookingDetailPage() {
       <PageHeader
         title={`Reserva #${booking.id}`}
         subtitle="Vista completa con pagos, limpieza, notas y análisis financiero."
+        breadcrumb={[{ label: "Reservas", to: "/bookings" }, { label: `#${booking.id}` }]}
       />
 
       {/* Hero card: client + property + dates */}
