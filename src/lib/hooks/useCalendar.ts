@@ -4,12 +4,21 @@ import { toast } from "sonner";
 import api from "@/lib/api";
 import type { CalendarBlock, CalendarBlockPayload, PaginatedResponse } from "@/types";
 
-export function useCalendarBlocks(propertyId?: number) {
+type CalendarBlockFilters = {
+  date_from?: string;
+  date_to?: string;
+  page_size?: number;
+};
+
+export function useCalendarBlocks(propertyId?: number, filters?: CalendarBlockFilters) {
   return useQuery({
-    queryKey: ["calendar", propertyId],
+    queryKey: ["calendar", propertyId, filters],
     queryFn: async () => {
       const { data } = await api.get<PaginatedResponse<CalendarBlock>>("/calendar/", {
-        params: propertyId ? { property: propertyId } : undefined,
+        params: {
+          ...(propertyId ? { property: propertyId } : {}),
+          ...filters,
+        },
       });
       return data;
     },
@@ -26,6 +35,7 @@ export function useCreateCalendarBlock() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["calendar"] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
       toast.success("Bloque creado");
     },
     onError: () => toast.error("No se pudo crear el bloqueo"),

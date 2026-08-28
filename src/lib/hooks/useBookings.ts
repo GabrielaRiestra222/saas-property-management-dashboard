@@ -31,6 +31,9 @@ type BookingFilters = {
   date?: string;
   client?: number | string;
   search?: string;
+  date_from?: string;
+  date_to?: string;
+  page_size?: number;
   check_in_after?: string;
   check_in_before?: string;
 };

@@ -7,7 +7,6 @@ import {
   endOfMonth,
   format,
   getDay,
-  isWithinInterval,
   parse,
   parseISO,
   startOfMonth,
@@ -80,6 +79,19 @@ function getMainPropertyImage(property: { images?: Array<{ image?: string; image
   return resolveMediaUrl(image?.image || image?.image_url);
 }
 
+function dateOnlyTime(value: Date) {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
+}
+
+function relationId(value: unknown) {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return Number(value);
+  if (value && typeof value === "object" && "id" in value) {
+    return Number((value as { id: number | string }).id);
+  }
+  return 0;
+}
+
 export default function CalendarPage() {
   const navigate = useNavigate();
   const [propertyId, setPropertyId] = useState("ALL");
@@ -95,10 +107,22 @@ export default function CalendarPage() {
     end_date: "",
     notes: "",
   });
+  const [plannerCreatedBlocks, setPlannerCreatedBlocks] = useState<CalendarBlock[]>([]);
 
   const propertiesQuery = useProperties();
-  const blocksQuery = useCalendarBlocks(propertyId !== "ALL" ? Number(propertyId) : undefined);
-  const bookingsQuery = useBookings(propertyId !== "ALL" ? { property: propertyId } : undefined);
+  const plannerDateRange = useMemo(
+    () => ({
+      date_from: format(startOfMonth(plannerMonth), "yyyy-MM-dd"),
+      date_to: format(endOfMonth(plannerMonth), "yyyy-MM-dd"),
+      page_size: 500,
+    }),
+    [plannerMonth],
+  );
+  const blocksQuery = useCalendarBlocks(propertyId !== "ALL" ? Number(propertyId) : undefined, plannerDateRange);
+  const bookingsQuery = useBookings({
+    ...(propertyId !== "ALL" ? { property: propertyId } : {}),
+    ...plannerDateRange,
+  });
   const cleaningQuery = useCleaningTasks(propertyId !== "ALL" ? { property: propertyId } : undefined);
   const maintenanceQuery = useMaintenanceRequests(propertyId !== "ALL" ? { property: propertyId } : undefined);
   const paymentsQuery = usePayments();
@@ -152,7 +176,11 @@ export default function CalendarPage() {
       }
     }
 
-    for (const block of blocksQuery.data?.results ?? []) {
+    const calendarBlocks = [...plannerCreatedBlocks, ...(blocksQuery.data?.results ?? [])].filter(
+      (block, index, allBlocks) => allBlocks.findIndex((item) => item.id === block.id) === index,
+    );
+
+    for (const block of calendarBlocks) {
       const type = block.reason as EventType;
       if (!activeFilters.has(type)) continue;
       all.push({
@@ -203,6 +231,7 @@ export default function CalendarPage() {
     cleaningQuery.data?.results,
     maintenanceQuery.data?.results,
     paymentsQuery.data?.results,
+    plannerCreatedBlocks,
   ]);
 
   const selectedEventData = selectedEvent?.resource as { type: string; data: Booking & CleaningTask & MaintenanceRequest & CalendarBlock & BookingPayment } | undefined;
@@ -217,7 +246,7 @@ export default function CalendarPage() {
 
   function eventPropertyId(event: Event) {
     const data = event.resource?.data as Partial<Booking & CleaningTask & MaintenanceRequest & CalendarBlock> | undefined;
-    return Number(data?.apartment ?? data?.property ?? 0);
+    return relationId(data?.apartment ?? data?.property);
   }
 
   function eventsForCell(day: Date, currentPropertyId: number) {
@@ -226,9 +255,10 @@ export default function CalendarPage() {
         return false;
       }
 
+      const dayTime = dateOnlyTime(day);
       const start = event.start instanceof Date ? event.start : new Date(event.start as Date);
       const end = event.end instanceof Date ? event.end : new Date(event.end as Date);
-      return isWithinInterval(day, { start, end });
+      return dayTime >= dateOnlyTime(start) && dayTime <= dateOnlyTime(end);
     });
   }
 
@@ -631,7 +661,7 @@ export default function CalendarPage() {
               }
               onClick={async () => {
                 try {
-                  await createBlock.mutateAsync({
+                  const createdBlock = await createBlock.mutateAsync({
                     property: Number(blockValues.property),
                     reason: blockValues.reason,
                     start_date: blockValues.start_date,
@@ -639,6 +669,8 @@ export default function CalendarPage() {
                     booking: null,
                     notes: blockValues.notes,
                   });
+                  setPlannerCreatedBlocks((current) => [createdBlock, ...current.filter((block) => block.id !== createdBlock.id)]);
+                  await blocksQuery.refetch();
                   setOpen(false);
                 } catch {
                   // useCreateCalendarBlock already surfaces a toast — keep the
